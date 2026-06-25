@@ -207,6 +207,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
     <button id="b2" onclick="show(2)">Resumo Operacional</button>
     <button id="b3" onclick="show(3)">Overview Anual</button>
     <button id="b4" onclick="show(4)">SLA entre Fases</button>
+    <button id="b5" onclick="show(5)">Análise Interativa</button>
   </div>
 </div>
 <div class="wrap">
@@ -342,6 +343,22 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
     <footer id="p4foot"></footer>
   </div>
 
+  <!-- PÁGINA 5 — ANÁLISE INTERATIVA -->
+  <div class="page" id="p5">
+    <header class="ph"><h1 id="p5title">Análise Interativa</h1><div class="ref" id="p5ref"></div></header>
+    <div class="src" id="p5src"></div>
+    <div class="controls">
+      <label class="muted" style="align-self:center">Fase:</label>
+      <select id="aiFase" class="msel"></select>
+      <label class="muted" style="align-self:center">Síntese:</label>
+      <select id="aiSint" class="msel"></select>
+      <span class="count" id="aiCount"></span>
+    </div>
+    <div class="cards" id="aiCards" style="margin:6px 0 14px"></div>
+    <div id="aiTable"></div>
+    <footer id="p5foot"></footer>
+  </div>
+
 </div>
 
 <script>
@@ -404,6 +421,7 @@ function buildIndex(header){
     unidade:find("UNIDADE"),
     comprador:find("NOME 1º COMPRADOR")>=0?find("NOME 1º COMPRADOR"):find("NOME 1 COMPRADOR"),
     fase:find("FASE"),
+    sintese:find("SÍNTESE")>=0?find("SÍNTESE"):(find("SINTESE")>=0?find("SINTESE"):find("SÍNTESE ")),
     pend:find("ASSINADO PEND. ASSESSORIA"),
     registro:find("ASSINADO ENTREGUE AO REGISTRO"),
     phases:{}
@@ -433,6 +451,7 @@ function prepare(aoa){
       unidade:String(row[idx.unidade]==null?"":row[idx.unidade]),
       comprador:String(row[idx.comprador]==null?"":row[idx.comprador]).slice(0,28),
       fase:String(row[idx.fase]==null?"":row[idx.fase]),
+      sintese:String((idx.sintese>=0?row[idx.sintese]:null)==null?"":row[idx.sintese]),
       pend: toDate(row[idx.pend]),
       reg: toDate(row[idx.registro]),
       seq, ts, traj: seq.map(s=>ABBR[s]||s).join(" › ")
@@ -613,7 +632,7 @@ function loadFile(f){
 /* ---------- navegação ---------- */
 function show(p){
   if(!RECS.length){return;}
-  [1,2,3,4].forEach(i=>{
+  [1,2,3,4,5].forEach(i=>{
     document.getElementById('p'+i).classList.toggle('active',p===i);
     document.getElementById('b'+i).classList.toggle('active',p===i);
   });
@@ -625,7 +644,7 @@ function maxDay(ymv){let d=0;RECS.forEach(r=>{if(r.ymv===ymv)d=Math.max(d,r.dm.g
 function casesOf(ymv){return RECS.filter(r=>r.ymv===ymv);}
 
 /* ---------- render ---------- */
-function renderAll(){renderP1();renderP2();renderP3();renderP4();}
+function renderAll(){renderP1();renderP2();renderP3();renderP4();renderP5();}
 
 function renderP1(){
   const k=kpis(RECS,CUR);
@@ -1317,6 +1336,59 @@ function renderSlaLegs(){
     <div class="src">“Para trás” = casos onde a 2ª fase do trecho foi carimbada antes da 1ª (devolução/retrabalho). São excluídos do SLA e contados à parte.</div>`;
 }
 document.getElementById('slaClear').addEventListener('click',()=>{window.__slaSel=[];renderSlaLegs();});
+
+/* ---------- PÁGINA 5 — ANÁLISE INTERATIVA ---------- */
+window.__aiFase=window.__aiFase||''; window.__aiSint=window.__aiSint||'';
+function aiEsc(s){return String(s==null?'':s).replace(/"/g,'&quot;');}
+function renderP5(){
+  const cs=window.__CSfull||casesOf(CUR);
+  document.getElementById('p5title').textContent='Análise Interativa — '+ymLabel(CUR);
+  document.getElementById('p5ref').textContent=cs.length+' minutas';
+  document.getElementById('p5src').textContent='Escolha a fase e a síntese para ver a relação de clientes — com fase atual, há quanto tempo estão nela e a data de emissão da minuta. Apenas minutas de '+ymLabel(CUR)+'.';
+  const faseSel=document.getElementById('aiFase');
+  const fcount={}; cs.forEach(r=>{fcount[r.fase]=(fcount[r.fase]||0)+1;});
+  const fases=Object.keys(fcount).sort((a,b)=>faseToIdx(a)-faseToIdx(b)||fcount[b]-fcount[a]);
+  faseSel.innerHTML='<option value="">Todas as fases ('+cs.length+')</option>'+
+    fases.map(f=>`<option value="${aiEsc(f)}">${f||'—'} (${fcount[f]})</option>`).join('');
+  if([...faseSel.options].some(o=>o.value===window.__aiFase)) faseSel.value=window.__aiFase; else window.__aiFase='';
+  populateSint();
+  faseSel.onchange=()=>{window.__aiFase=faseSel.value; window.__aiSint=''; populateSint(); renderAiTable();};
+  document.getElementById('aiSint').onchange=()=>{window.__aiSint=document.getElementById('aiSint').value; renderAiTable();};
+  renderAiTable();
+}
+function populateSint(){
+  const cs=window.__CSfull||casesOf(CUR);
+  const base=cs.filter(r=>!window.__aiFase||r.fase===window.__aiFase);
+  const sc={}; base.forEach(r=>{const s=r.sintese||'(vazio)'; sc[s]=(sc[s]||0)+1;});
+  const sints=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]);
+  const sel=document.getElementById('aiSint');
+  sel.innerHTML='<option value="">Todas as sínteses ('+base.length+')</option>'+
+    sints.map(s=>`<option value="${aiEsc(s)}">${s} (${sc[s]})</option>`).join('');
+  if([...sel.options].some(o=>o.value===window.__aiSint)) sel.value=window.__aiSint; else window.__aiSint='';
+}
+function renderAiTable(){
+  const cs=window.__CSfull||casesOf(CUR);
+  const rows=cs.filter(r=>(!window.__aiFase||r.fase===window.__aiFase) && (!window.__aiSint||(r.sintese||'(vazio)')===window.__aiSint));
+  const data=rows.map(r=>{const dt=currentEntered(r);return {r,dt,age:ageDays(dt)};})
+    .sort((a,b)=>(b.age==null?-1:b.age)-(a.age==null?-1:a.age));
+  document.getElementById('aiCount').textContent=rows.length+' de '+cs.length;
+  const ages=data.map(o=>o.age).filter(v=>v!=null);
+  const medAge=ages.length?median(ages):null;
+  document.getElementById('aiCards').innerHTML=`
+    <div class="card hero"><div class="n">${rows.length}</div><div class="lbl">Clientes no filtro</div></div>
+    <div class="card"><div class="n">${medAge==null?'—':Math.round(medAge)+'d'}</div><div class="lbl">Tempo mediano na fase atual</div></div>
+    <div class="card"><div class="n">${data[0]&&data[0].age!=null?data[0].age+'d':'—'}</div><div class="lbl">Mais tempo parado</div></div>`;
+  const header=['Contrato','Unidade','Comprador','Empreendimento','Fase atual','Síntese','Na fase há (dias)','Na fase desde','Emitida em'];
+  window.__relExport={name:'analise_'+ymLabel(CUR),rows:[header].concat(data.map(o=>[o.r.contrato,o.r.unidade,o.r.comprador,o.r.empreend,o.r.fase,o.r.sintese,(o.age==null?'':o.age),fmtFull(o.dt),fmtFull(o.r.dm.getTime())]))};
+  const body=data.map(o=>{
+    const ageTag=o.age==null?'—':`${fmtFull(o.dt)} <span class="agetag${o.age>30?' hot':''}">há ${o.age}d</span>`;
+    return `<tr><td>${o.r.contrato}</td><td>${o.r.unidade}</td><td>${o.r.comprador}</td><td>${o.r.empreend}</td><td>${badge(o.r.fase)}</td><td>${o.r.sintese||'—'}</td><td style="white-space:nowrap">${ageTag}</td><td style="white-space:nowrap">${fmtFull(o.r.dm.getTime())}</td></tr>`;
+  }).join('');
+  document.getElementById('aiTable').innerHTML=
+    `<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="segb pathbtn" onclick="exportRel()">⤓ Exportar CSV</button></div>
+     <div class="tablewrap"><table><thead><tr><th>Contrato</th><th>Unidade</th><th>Comprador</th><th>Empreendimento</th><th>Fase atual</th><th>Síntese</th><th>Na fase há</th><th>Emitida em</th></tr></thead><tbody>${body}</tbody></table></div>`;
+  document.getElementById('p5foot').innerHTML='“Na fase há” usa o carimbo da fase atual (último registro disponível). Ordenado do mais tempo parado para o mais recente.';
+}
 
 /* auto-puxar da planilha ao abrir */
 loadFromSheet();
