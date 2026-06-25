@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Minutas · Assessoria</title>
+<script>
+// Carrega a SheetJS tentando vários CDNs (robustez em redes corporativas)
+(function(){
+  var cdns=[
+    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+    "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+    "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"
+  ];
+  var i=0;
+  function next(){
+    if(typeof XLSX!=="undefined"){window.__XLSX_OK=true;return;}
+    if(i>=cdns.length){window.__XLSX_OK=false;return;}
+    var s=document.createElement("script");
+    s.src=cdns[i++];s.onload=function(){window.__XLSX_OK=true;};s.onerror=next;
+    document.head.appendChild(s);
+  }
+  next();
+})();
+</script>
+<style>
+:root{--ink:#1c2126;--ink-soft:#5b6670;--line:#e2e5e8;--bg:#f6f7f8;--card:#fff;
+--ok:#1f7a55;--warn:#b4541a;--stop:#a32f2f;--accent:#1b4d6b;--accent-soft:#eaf1f5;--gray:#8a949c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+background:var(--bg);color:var(--ink);line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px 70px}
+.topbar{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:2px solid var(--ink);
+padding:12px 16px 0;max-width:1040px;margin:0 auto}
+.topbar .row1{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.brand{font-size:15px;font-weight:700;margin-right:auto}
+.muted{color:var(--ink-soft);font-size:12px}
+select,.btn,input[type=file]{font:inherit}
+.msel{font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.btn{font-size:12.5px;font-weight:600;padding:7px 12px;border:1px solid var(--accent);background:var(--accent);
+color:#fff;border-radius:8px;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--accent)}
+.tabs{display:flex;gap:4px}
+.tabs button{font-size:13px;font-weight:600;border:1px solid var(--line);border-bottom:none;background:#eef1f3;
+color:var(--ink-soft);padding:9px 16px;border-radius:8px 8px 0 0;cursor:pointer}
+.tabs button.active{background:#fff;color:var(--ink);border-color:var(--ink);border-bottom:2px solid #fff;margin-bottom:-2px}
+.page{display:none;padding-top:22px}.page.active{display:block}
+header.ph{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+header.ph h1{font-size:19px;letter-spacing:-.2px}
+header.ph .ref{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.src{font-size:11px;color:var(--ink-soft);margin-bottom:20px}
+.section-label{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-soft);margin:28px 0 12px;font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+.card .n{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1}
+.card .lbl{font-size:12.5px;color:var(--ink-soft);margin-top:6px}
+.card .sub{font-size:11.5px;color:var(--ink-soft);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.card.hero{border-color:var(--accent);background:var(--accent-soft)}.card.hero .n{color:var(--accent)}
+.card.alarm{border-color:var(--stop)}.card.alarm .n{color:var(--stop)}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px}
+.pill.warn{background:#fbe9dc;color:var(--warn)}
+.flag{background:#fff;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:8px;padding:13px 16px;margin-top:10px}
+.flag p{font-size:13px}.flag .num{font-variant-numeric:tabular-nums;font-weight:700}
+.traj{background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 2px;margin-top:6px}
+.traj-row{display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line)}
+.traj-row:last-child{border-bottom:none}
+.traj-row .cnt{font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;text-align:right}
+.traj-row .path{font-size:11.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.7;word-break:break-word}
+.hl{background:#fbe9dc;color:var(--warn);font-weight:700;padding:1px 4px;border-radius:4px}
+.spine{background:var(--accent-soft);border:1px solid #cfe0ea;border-radius:8px;padding:13px 16px;margin-bottom:12px;font-size:13px}
+.spine code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;background:#fff;padding:1px 5px;border-radius:4px;border:1px solid var(--line);word-break:break-word}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.controls input,.controls select{font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.controls input{flex:1;min-width:180px}
+.controls .count{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums;margin-left:auto}
+.tablewrap{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:560px;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#fafbfc;position:sticky;top:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
+tr:hover td{background:#fbfcfd}
+td.path{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--ink-soft);min-width:280px}
+td.path .hl{padding:0 3px}
+.badge{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:5px;white-space:nowrap;background:#eef1f3;color:var(--ink)}
+.badge.pend{background:#fbe9dc;color:var(--warn);font-weight:700}.badge.cart,.badge.reg{background:#e3f1ea;color:var(--ok)}
+footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:12px}
+/* page2 */
+.verdict{border-radius:12px;padding:18px 20px;margin-bottom:8px;border:1px solid var(--line)}
+.verdict.bad{background:#fbecea;border-color:#e6b3ab}.verdict.good{background:#eaf3ee;border-color:#b6d8c4}
+.verdict .tag{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.verdict.bad .tag{color:var(--stop)}.verdict.good .tag{color:var(--ok)}
+.verdict h2{font-size:17px;margin:6px 0}.verdict p{font-size:13.5px}
+.scorecard{display:grid;gap:10px;margin-top:6px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;display:grid;grid-template-columns:7px 1fr auto;gap:12px;align-items:center}
+.kpi .stripe{align-self:stretch;border-radius:6px;background:var(--gray)}
+.kpi.good .stripe{background:var(--ok)}.kpi.bad .stripe{background:var(--stop)}.kpi.warns .stripe{background:var(--warn)}.kpi.na .stripe{background:var(--gray)}
+.kpi .name{font-size:13.5px;font-weight:600}.kpi .desc{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.kpi .vals{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .vals .big{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.kpi .vals .big.good{color:var(--ok)}.kpi .vals .big.bad{color:var(--stop)}
+.kpi .vals .cmp{font-size:11.5px;color:var(--ink-soft);margin-top:3px}
+.verdtag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+.verdtag.good{background:#e3f1ea;color:var(--ok)}.verdtag.bad{background:#f6e0e0;color:var(--stop)}
+.verdtag.warns{background:#fbe9dc;color:var(--warn)}.verdtag.na{background:#eef1f3;color:var(--gray)}
+.note{font-size:12px;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:12px}
+.cmptbl{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:6px;min-width:520px}
+.cmptbl th,.cmptbl td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:right}
+.cmptbl th:first-child,.cmptbl td:first-child{text-align:left}
+.cmptbl th{background:#fafbfc;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft)}
+.cmptbl tr:last-child td{border-bottom:none}
+.annualchart{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 12px 8px}
+/* funil topo p1 */
+.p1top{display:grid;grid-template-columns:1fr 290px;gap:14px;margin-bottom:6px}
+@media(max-width:780px){.p1top{grid-template-columns:1fr}}
+.chartbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 6px 6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.faselist-title{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:6px}
+.faselist{background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px 0;max-height:392px;overflow:auto}
+.faselist .fl{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line);font-size:12.5px;cursor:pointer}
+.faselist .fl:last-child{border-bottom:none}
+.faselist .fl:hover{background:#fbfcfd}
+.faselist .fl .dot{width:9px;height:9px;border-radius:2px;background:var(--accent)}
+.faselist .fl .q{font-variant-numeric:tabular-nums;font-weight:700}
+.faselist .fl.pend .dot{background:var(--warn)}
+.faselist .fl.done .dot{background:var(--ok)}
+.bar{cursor:pointer}.bar:hover{opacity:.78}
+.barlbl{cursor:pointer}
+/* segmented toggle */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.segb{font:inherit;font-size:12px;font-weight:600;border:none;background:#fff;color:var(--ink-soft);padding:6px 12px;cursor:pointer}
+.segb.active{background:var(--accent);color:#fff}
+#allPathsBtn{border:1px solid var(--accent);border-radius:8px;color:var(--accent);background:#fff;padding:6px 12px}
+#allPathsBtn:hover{background:var(--accent-soft)}
+/* horizontal bar chart (relatórios) */
+.hbar{display:grid;grid-template-columns:200px 1fr 46px;gap:10px;align-items:center;padding:5px 2px;font-size:12px}
+.hbar .hl-lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.hbar .hl-lab:hover{text-decoration:underline}
+.hbar .track{background:#eef1f3;border-radius:4px;height:16px;overflow:hidden}
+.hbar .fillb{height:100%;background:var(--accent);border-radius:4px}
+.hbar .hl-q{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.hbar.pend .fillb{background:var(--warn)}.hbar.done .fillb{background:var(--ok)}
+@media(max-width:560px){.hbar{grid-template-columns:120px 1fr 40px}}
+.pathlist{background:#fff;border:1px solid var(--line);border-radius:8px;max-height:520px;overflow:auto}
+.pathlist .pr{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.pathlist .pr:last-child{border-bottom:none}
+.pathlist .pr .cnt{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.pathlist .pr .pp{font-size:11.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.7;word-break:break-word}
+/* report */
+#phaseReport .rhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 16px}
+#phaseReport .rback{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--accent);background:#fff;color:var(--accent);padding:7px 14px;border-radius:8px;cursor:pointer}
+#phaseReport h2{font-size:18px}
+/* empty state */
+.empty{background:#fff;border:1px dashed var(--line);border-radius:12px;padding:34px 26px;text-align:center;margin-top:30px}
+.empty h2{font-size:18px;margin-bottom:8px}.empty p{font-size:13.5px;color:var(--ink-soft);max-width:560px;margin:0 auto 16px}
+.empty ol{text-align:left;max-width:460px;margin:0 auto 18px;font-size:13px;color:var(--ink)}
+.empty li{margin:0 0 6px 18px}
+.drop{border:2px dashed #c7ced3;border-radius:10px;padding:22px;color:var(--ink-soft);font-size:13px}
+.drop.drag{border-color:var(--accent);background:var(--accent-soft)}
+.hidden{display:none!important}
+.loading{font-size:13px;color:var(--ink-soft);padding:30px;text-align:center}
+@media(max-width:560px){
+ .card .n{font-size:27px}.kpi{grid-template-columns:6px 1fr;gap:10px}
+ .kpi .vals{text-align:left;grid-column:2}.brand{width:100%}
+ header.ph h1{font-size:17px}
+}
+</style></head>
+<body>
+<div class="topbar">
+  <div class="row1">
+    <span class="brand">Painel de Minutas — Assessoria</span>
+    <label class="muted">Mês:</label>
+    <select id="monthSel" class="msel" disabled><option>—</option></select>
+    <button class="btn ghost" id="reload">Trocar base</button>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv" class="hidden">
+  </div>
+  <div class="tabs">
+    <button id="b1" class="active" onclick="show(1)">Dashboard de Controle</button>
+    <button id="b2" onclick="show(2)">Resumo Operacional</button>
+    <button id="b3" onclick="show(3)">Overview Anual</button>
+  </div>
+</div>
+<div class="wrap">
+
+  <!-- EMPTY / LOADER -->
+  <div id="emptyState" class="empty">
+    <h2>Carregue a base para começar</h2>
+    <p>O painel lê a planilha direto no seu navegador (nada é enviado pra lugar nenhum). Atualize a base quando quiser e os números se ajustam — inclusive a comparação com o mês anterior.</p>
+    <ol>
+      <li>No Google Sheets: <b>Arquivo › Fazer download › Microsoft Excel (.xlsx)</b>.</li>
+      <li>Ou exporte só a aba FASES como <b>.csv</b> (deixe a aba FASES ativa antes).</li>
+      <li>Arraste o arquivo aqui ou clique no botão.</li>
+    </ol>
+    <div class="drop" id="drop">
+      <button class="btn" id="pick">Selecionar arquivo .xlsx / .csv</button>
+      <div style="margin-top:10px">ou arraste e solte aqui</div>
+    </div>
+    <div id="loadMsg" class="muted" style="margin-top:14px"></div>
+  </div>
+
+  <!-- PÁGINA 1 -->
+  <div class="page" id="p1">
+    <header class="ph"><h1 id="p1title">Controle</h1><div class="ref" id="p1ref"></div></header>
+    <div class="src" id="p1src"></div>
+
+    <div id="p1normal">
+      <div class="section-label" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span>Funil — quantas pessoas passaram por cada fase</span>
+        <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink-soft)">(clique numa barra → relatório)</span>
+        <span class="seg" id="chartSeg" style="margin-left:auto">
+          <button class="segb active" data-mode="main">Principais</button>
+          <button class="segb" data-mode="all">Todas as fases</button>
+        </span>
+      </div>
+      <div class="p1top">
+        <div class="chartbox" id="phaseChart"></div>
+        <div>
+          <div class="faselist-title">Onde estão agora — por FASE <span style="text-transform:none;letter-spacing:0;font-weight:400">(clique → caminhos)</span></div>
+          <div class="faselist" id="faseList"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Visão do mês</div>
+      <div class="cards" id="p1cards"></div>
+      <div class="section-label">Tempo Pend. Assessoria → Registro</div>
+      <div class="flag" id="p1flag"></div>
+      <div class="section-label" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span>Trajetos mais comuns (pelo timestamp das colunas)</span>
+        <button class="segb" id="allPathsBtn" style="margin-left:auto">Ver todos os caminhos →</button>
+      </div>
+      <div class="spine" id="p1spine"></div>
+      <div class="traj" id="trajList"></div>
+      <div class="src" id="p1trajsrc"></div>
+      <div class="section-label">Relação caso a caso</div>
+      <div class="controls">
+        <input id="q" placeholder="Buscar contrato, comprador, unidade…">
+        <select id="fFase"></select><span class="count" id="count"></span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th data-k="dms">Minuta</th><th data-k="contrato">Contrato</th><th data-k="unidade">Unidade</th>
+        <th data-k="comprador">Comprador</th><th data-k="fase">Status atual</th><th data-k="traj">Trajeto</th></tr></thead>
+        <tbody id="tbody"></tbody></table></div>
+    </div>
+
+    <div id="phaseReport" class="hidden"></div>
+  </div>
+
+  <!-- PÁGINA 2 -->
+  <div class="page" id="p2">
+    <header class="ph"><h1 id="p2title">Resumo Operacional</h1><div class="ref" id="p2ref"></div></header>
+    <div class="src" id="p2src"></div>
+    <div id="verdictBox"></div>
+    <div class="section-label">Placar — bom × ruim</div>
+    <div class="scorecard" id="scorecard"></div>
+    <div class="note" id="matnote"></div>
+    <div class="section-label">Tabela comparativa</div>
+    <div style="overflow:auto"><table class="cmptbl" id="cmptbl"></table></div>
+    <div class="src" id="p2foot"></div>
+  </div>
+
+  <!-- PÁGINA 3 — OVERVIEW ANUAL -->
+  <div class="page" id="p3">
+    <header class="ph"><h1 id="p3title">Overview Anual</h1><div class="ref" id="p3ref"></div></header>
+    <div class="src">2026 e 2025 mês a mês, com a variação 2026 vs 2025. Meses futuros e o mês corrente (parcial) ficam sinalizados.</div>
+    <div class="controls">
+      <label class="muted" style="align-self:center">Métrica:</label>
+      <select id="metricSel">
+        <option value="vol">Volume de minutas emitidas</option>
+        <option value="devreg">Taxa de devolução (%)</option>
+        <option value="devol">Devoluções (quantidade)</option>
+        <option value="final">Concluído — cartório/registrado (%)</option>
+        <option value="reg">Chegou ao registro (%)</option>
+        <option value="fwd">Tempo mediana fwd (dias)</option>
+      </select>
+      <span class="count" id="p3hint"></span>
+    </div>
+    <div class="cards" id="p3cards" style="margin-bottom:18px"></div>
+    <div class="annualchart" id="annualChart"></div>
+    <div class="section-label">Tabela mês a mês</div>
+    <div style="overflow:auto"><table class="cmptbl" id="annualTbl"></table></div>
+    <div class="note" id="p3note"></div>
+    <footer id="p3foot"></footer>
+  </div>
+
+</div>
+
+<script>
+// Core analytics — same code will be embedded in the HTML app.
+// Works on an array-of-arrays (aoa): aoa[0] = header, rest = rows.
+
+const PHASE_NAMES = [
+  "VENDA NOVA","ENTREVISTA","ENTREVISTA AGENDADA","REAVALIAR","REAVALIAR NEGOCIAÇÃO",
+  "FGTS","SUBIR","SUBIR - NEGOCIAÇÃO","NA CEHOP","NA CEHOP NEGOCIAÇÃO","NA CEHOP INCONFORME",
+  "CONFORME","CONFORME RESTRIÇÃO","CONFORME EMITIR MINUTA","CONFORME MINUTA SOLICITADA",
+  "CONFORME EM EDIÇÃO","CONFORME EMITIDO PRESENCIAL","CONFORME EMITIDO","CONFORME PEND. ASSESSORIA",
+  "CONFORME MINUTA LIBERADA","CONFORME MINUTA ENVIADA","CONFORME AGENDADO PRESENCIAL",
+  "ASSINADO - CONFERIR","ASSINADO","ASSINADO PEND. ASSESSORIA","ASSINADO MINUTA OK",
+  "ASSINADO COM VENDEDOR","ASSINADO ENTREGUE AO REGISTRO","ASSINADO – NO CARTORIO",
+  "REGISTRADO","NEGOCIAÇÃO","FINALIZADO","DISTRATO","DEMANDA FUTURA"
+];
+const ABBR = {
+ "VENDA NOVA":"VN","ENTREVISTA":"Entrev","ENTREVISTA AGENDADA":"Entrev.Ag","REAVALIAR":"Reaval",
+ "REAVALIAR NEGOCIAÇÃO":"Reaval.Neg","FGTS":"FGTS","SUBIR":"Subir","SUBIR - NEGOCIAÇÃO":"Subir.Neg",
+ "NA CEHOP":"CEHOP","NA CEHOP NEGOCIAÇÃO":"CEHOP.Neg","NA CEHOP INCONFORME":"CEHOP.Inconf",
+ "CONFORME":"Conforme","CONFORME RESTRIÇÃO":"Conf.Restr","CONFORME EMITIR MINUTA":"Emitir",
+ "CONFORME MINUTA SOLICITADA":"Solicitada","CONFORME EM EDIÇÃO":"Edição",
+ "CONFORME EMITIDO PRESENCIAL":"Emit.Pres","CONFORME EMITIDO":"Emitido",
+ "CONFORME PEND. ASSESSORIA":"Conf.Pend.Ass","CONFORME MINUTA LIBERADA":"Liberada",
+ "CONFORME MINUTA ENVIADA":"Enviada","CONFORME AGENDADO PRESENCIAL":"Ag.Pres",
+ "ASSINADO - CONFERIR":"Conferir","ASSINADO":"Assinado","ASSINADO PEND. ASSESSORIA":"PEND.ASS",
+ "ASSINADO MINUTA OK":"Min.OK","ASSINADO COM VENDEDOR":"C/Vend",
+ "ASSINADO ENTREGUE AO REGISTRO":"Registro","ASSINADO – NO CARTORIO":"Cartório",
+ "REGISTRADO":"Registrado","NEGOCIAÇÃO":"Negoc","FINALIZADO":"Finalizado",
+ "DISTRATO":"Distrato","DEMANDA FUTURA":"Dem.Fut"
+};
+const FINAL_FASES = ["ASSINADO – NO CARTORIO","REGISTRADO","FINALIZADO"];
+
+function norm(s){return String(s==null?"":s).trim().replace(/–/g,"-").replace(/\s+/g," ").toUpperCase();}
+
+function toDate(v){
+  if(v==null||v==="") return null;
+  if(v instanceof Date) return isNaN(v)?null:v;
+  if(typeof v==="number"){ // excel serial
+    const d=new Date(Math.round((v-25569)*86400*1000)); return isNaN(d)?null:d;
+  }
+  const s=String(v).trim();
+  // dd/mm/yyyy[ hh:mm[:ss]]
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if(m){let[_,d,mo,y,h,mi,se]=m;y=+y;if(y<100)y+=2000;
+    return new Date(y,+mo-1,+d,+(h||0),+(mi||0),+(se||0));}
+  // yyyy-mm-dd
+  m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if(m){let[_,y,mo,d,h,mi,se]=m;return new Date(+y,+mo-1,+d,+(h||0),+(mi||0),+(se||0));}
+  return null; // sem fallback genérico: new Date("dez/2026") fabricaria datas erradas
+}
+
+function buildIndex(header){
+  const H=header.map(norm);
+  const find=name=>H.indexOf(norm(name));
+  const idx={
+    dataMinuta:find("DATA MINUTA"),
+    contrato:find("Nº CONTRATO")>=0?find("Nº CONTRATO"):find("N CONTRATO"),
+    empreend:find("EMPREENDIMENTO"),
+    unidade:find("UNIDADE"),
+    comprador:find("NOME 1º COMPRADOR")>=0?find("NOME 1º COMPRADOR"):find("NOME 1 COMPRADOR"),
+    fase:find("FASE"),
+    pend:find("ASSINADO PEND. ASSESSORIA"),
+    registro:find("ASSINADO ENTREGUE AO REGISTRO"),
+    phases:{}
+  };
+  PHASE_NAMES.forEach(p=>{const i=find(p); if(i>=0) idx.phases[p]=i;});
+  return idx;
+}
+
+function ym(d){return d? d.getFullYear()*100+(d.getMonth()+1):null;}
+
+function prepare(aoa){
+  const header=aoa[0]; const idx=buildIndex(header);
+  const recs=[];
+  for(let r=1;r<aoa.length;r++){
+    const row=aoa[r]; if(!row||row.length===0) continue;
+    const dm=toDate(row[idx.dataMinuta]);
+    if(!dm) continue; // only rows with a minuta date
+    const ev=[];
+    for(const p in idx.phases){const dv=toDate(row[idx.phases[p]]); if(dv) ev.push([dv,p]);}
+    ev.sort((a,b)=>a[0]-b[0]);
+    const seq=ev.map(e=>e[1]);
+    recs.push({
+      dm, ymv:ym(dm),
+      contrato:String(row[idx.contrato]==null?"":row[idx.contrato]),
+      empreend:String(row[idx.empreend]==null?"":row[idx.empreend]).split(" - ")[0].slice(0,28),
+      unidade:String(row[idx.unidade]==null?"":row[idx.unidade]),
+      comprador:String(row[idx.comprador]==null?"":row[idx.comprador]).slice(0,28),
+      fase:String(row[idx.fase]==null?"":row[idx.fase]),
+      pend: toDate(row[idx.pend]),
+      reg: toDate(row[idx.registro]),
+      seq, traj: seq.map(s=>ABBR[s]||s).join(" › ")
+    });
+  }
+  return recs;
+}
+
+function median(a){if(!a.length)return null;const s=[...a].sort((x,y)=>x-y);const m=s.length>>1;
+  return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+
+// cohort = records filtered by (ymv === target) and optional dayMax
+function kpis(recs, targetYm, dayMax){
+  const rs=recs.filter(r=>r.ymv===targetYm && (dayMax==null || r.dm.getDate()<=dayMax));
+  const n=rs.length;
+  let passou=0,devol=0,final=0,reg=0,fwd=[];
+  const FINALSET=new Set(FINAL_FASES.map(norm));
+  for(const r of rs){
+    if(r.pend) passou++;
+    const hasReg=r.seq.indexOf("ASSINADO ENTREGUE AO REGISTRO")>=0;
+    if(hasReg) reg++;
+    const ip=r.seq.indexOf("ASSINADO PEND. ASSESSORIA"), ie=r.seq.indexOf("ASSINADO ENTREGUE AO REGISTRO");
+    if(ip>=0&&ie>=0&&ip>ie) devol++;
+    if(FINALSET.has(norm(r.fase))) final++;
+    if(r.pend&&r.reg&&r.reg>=r.pend) fwd.push((r.reg-r.pend)/86400000);
+  }
+  const pc=(x)=>n?Math.round(1000*x/n)/10:0;
+  return {n,passou,devol,final,reg,
+    passou_p:pc(passou),devol_p:pc(devol),final_p:pc(final),reg_p:pc(reg),
+    devreg: reg?Math.round(1000*devol/reg)/10:0,
+    fwd_med: fwd.length?Math.round(median(fwd)*10)/10:null, fwd_n:fwd.length};
+}
+
+function monthsAvailable(recs){
+  const set=new Set(recs.map(r=>r.ymv));
+  return [...set].sort((a,b)=>b-a);
+}
+function prevYm(y){const yr=Math.floor(y/100),mo=y%100;return mo===1?(yr-1)*100+12:y-1;}
+
+
+
+
+/* ---------- estado ---------- */
+let RECS=[], CUR=null, sk='dms', sd=-1;
+
+const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function ymLabel(y){const yr=Math.floor(y/100),mo=y%100;return MES[mo-1]+"/"+yr;}
+function hl(s){return s.replace(/PEND\.ASS/g,'<span class="hl">PEND.ASS</span>');}
+
+/* ---------- carregar arquivo ---------- */
+const fileInput=document.getElementById('file');
+document.getElementById('pick').onclick=()=>fileInput.click();
+document.getElementById('reload').onclick=()=>fileInput.click();
+fileInput.onchange=e=>{if(e.target.files[0])loadFile(e.target.files[0]);};
+const drop=document.getElementById('drop');
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+
+function loadFile(f){
+  const msg=document.getElementById('loadMsg');
+  if(typeof XLSX==='undefined'){msg.textContent='A biblioteca de leitura ainda não carregou (precisa de internet na primeira abertura). Aguarde alguns segundos e tente de novo.';return;}
+  msg.textContent='Lendo '+f.name+'…';
+  const rdr=new FileReader();
+  const isCsv=/\.csv$/i.test(f.name);
+  rdr.onload=ev=>{
+    try{
+      let wb;
+      if(isCsv){
+        // CSV: ler como texto cru. Datas ficam string "dd/mm/aaaa" e são parseadas por toDate (padrão BR).
+        // NÃO usar cellDates aqui — evita a biblioteca interpretar dd/mm como mm/dd (americano).
+        wb=XLSX.read(ev.target.result,{type:'string',raw:true,cellDates:false});
+      }else{
+        wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
+      }
+      let sheet=wb.SheetNames.find(n=>n.toUpperCase().includes('FASES'))||wb.SheetNames[0];
+      const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{header:1,raw:true,defval:null});
+      RECS=prepare(aoa);
+      if(!RECS.length){msg.textContent='Não encontrei linhas com DATA MINUTA. Confira se a aba é a FASES.';return;}
+      const months=monthsAvailable(RECS);
+      const now=new Date(); const nowYm=now.getFullYear()*100+(now.getMonth()+1);
+      // qualidade: minutas com DATA MINUTA depois de hoje
+      window.__FUT = RECS.filter(r=>r.dm>now).length;
+      window.__FUTM = months.filter(m=>m>nowYm);
+      const sel=document.getElementById('monthSel');
+      sel.innerHTML=months.map(m=>{
+        const fut = m>nowYm ? ' ⚠ futuro' : '';
+        return `<option value="${m}">${ymLabel(m)}${fut}</option>`;
+      }).join('');
+      sel.disabled=false;
+      // default: mês mais recente que NÃO seja futuro (senão, o mais recente)
+      const def = months.find(m=>m<=nowYm) || months[0];
+      sel.value=def;
+      sel.onchange=()=>{CUR=+sel.value;renderAll();};
+      CUR=def;
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('p1').classList.add('active');
+      renderAll();
+    }catch(err){msg.textContent='Erro ao ler: '+err.message;}
+  };
+  if(isCsv){rdr.readAsText(f);}else{rdr.readAsArrayBuffer(f);}
+}
+
+/* ---------- navegação ---------- */
+function show(p){
+  if(!RECS.length){return;}
+  document.getElementById('p1').classList.toggle('active',p===1);
+  document.getElementById('p2').classList.toggle('active',p===2);
+  document.getElementById('p3').classList.toggle('active',p===3);
+  document.getElementById('b1').classList.toggle('active',p===1);
+  document.getElementById('b2').classList.toggle('active',p===2);
+  document.getElementById('b3').classList.toggle('active',p===3);
+  window.scrollTo(0,0);
+}
+
+/* ---------- helpers de cohort ---------- */
+function maxDay(ymv){let d=0;RECS.forEach(r=>{if(r.ymv===ymv)d=Math.max(d,r.dm.getDate());});return d;}
+function casesOf(ymv){return RECS.filter(r=>r.ymv===ymv);}
+
+/* ---------- render ---------- */
+function renderAll(){renderP1();renderP2();renderP3();}
+
+function renderP1(){
+  const k=kpis(RECS,CUR);
+  const cs=casesOf(CUR);
+  document.getElementById('p1title').textContent='Minutas de '+ymLabel(CUR)+' — Controle';
+  document.getElementById('p1ref').textContent='DATA MINUTA em '+ymLabel(CUR)+' · '+k.n+' casos';
+  document.getElementById('p1src').innerHTML='Todos os números desta página são apenas das minutas de '+ymLabel(CUR)+'.'+
+    ((window.__FUT||0)>0 ? ' <b style="color:var(--warn)">⚠ '+window.__FUT+' minuta(s) na base têm DATA MINUTA no futuro ('+(window.__FUTM||[]).map(ymLabel).join(', ')+') — provável erro de digitação na origem; revise antes de confiar nesses meses.</b>' : '')+
+    (CUR>(new Date().getFullYear()*100+(new Date().getMonth()+1)) ? ' <b style="color:var(--stop)">Você está vendo um mês no futuro.</b>' : '');
+  // cards
+  const travadas=cs.filter(r=>/PEND\. ASSESS/i.test(r.fase)).length;
+  document.getElementById('p1cards').innerHTML=`
+   <div class="card"><div class="n">${k.n}</div><div class="lbl">Minutas emitidas</div></div>
+   <div class="card"><div class="n">${k.passou}</div><div class="lbl">Passaram por “Pend. Assessoria” <span class="pill warn">${k.passou_p}%</span></div></div>
+   <div class="card hero"><div class="n">${travadas}</div><div class="lbl">Paradas <b>agora</b> em Pend. Assessoria</div><div class="sub">O que destravar hoje.</div></div>
+   <div class="card alarm"><div class="n">${k.devol}</div><div class="lbl">Devoluções: foram ao Registro e <b>voltaram</b></div><div class="sub">${k.devreg}% dos que chegaram ao registro.</div></div>`;
+  // flag
+  const withBoth=cs.filter(r=>r.pend&&r.reg).length;
+  const neg=cs.filter(r=>r.pend&&r.reg&&r.reg<r.pend).length;
+  document.getElementById('p1flag').innerHTML=`<p>Das minutas com as duas datas (${withBoth}), <span class="num">${neg}</span> têm Entregue <b>antes</b> de Pend. — porque Pend. é devolução, não etapa anterior. Onde fluiu pra frente (<span class="num">${k.fwd_n}</span> casos), mediana <span class="num">${k.fwd_med==null?'—':k.fwd_med+' dia(s)'}</span>. Acompanhe as <b>${k.devol} devoluções</b>.</p>`;
+  // trajetos
+  const tmap={};
+  cs.forEach(r=>{const key=r.seq.join('|');tmap[key]=tmap[key]||{n:0,p:r.traj};tmap[key].n++;});
+  const top=Object.values(tmap).sort((a,b)=>b.n-a.n).slice(0,8);
+  const distinct=Object.keys(tmap).length;
+  const avgLen=cs.length?Math.round(cs.reduce((s,r)=>s+r.seq.length,0)/cs.length):0;
+  document.getElementById('p1spine').innerHTML=
+   '<b>Espinha dominante</b> — caminho mais frequente:<br><code>'+(top[0]?top[0].p:'—')+'</code><br>'+
+   'O desvio relevante é <span class="hl">PEND.ASS</span> após <code>Registro</code> (a devolução).';
+  document.getElementById('trajList').innerHTML=top.map(t=>
+   `<div class="traj-row"><div class="cnt">${t.n}</div><div class="path">${hl(t.p)}</div></div>`).join('');
+  document.getElementById('p1trajsrc').innerHTML=distinct+' trajetos distintos · média '+avgLen+' fases/caso · 8 mais frequentes acima.';
+  // tabela
+  const fd={};cs.forEach(r=>{fd[r.fase]=(fd[r.fase]||0)+1;});
+  const fdArr=Object.entries(fd).sort((a,b)=>b[1]-a[1]);
+  const sel=document.getElementById('fFase');
+  sel.innerHTML='<option value="">Todos os status ('+cs.length+')</option>'+
+   fdArr.map(([k2,v])=>`<option value="${k2.replace(/"/g,'&quot;')}">${k2} (${v})</option>`).join('');
+  window.__CS=cs.map(r=>({...r,dms:r.dm.getTime()}));
+  window.__CSfull=cs;
+  renderTable();
+  buildPhaseChart(cs);
+  buildFaseList(cs);
+  closePhaseReport();
+}
+
+/* ---------- funil: contagem por fase + lista por FASE atual ---------- */
+function normFase(s){return String(s||'').toUpperCase().replace(/–/g,'-').replace(/[^A-Z0-9]/g,'');}
+// mapeia um valor da coluna FASE para o índice da fase no funil (match aproximado)
+function faseToIdx(fase){
+  const nf=normFase(fase); if(!nf) return 999;
+  let best=999,bestScore=-1;
+  PHASE_NAMES.forEach((p,i)=>{const np=normFase(p);let sc=-1;
+    if(nf===np) sc=np.length+1000;                          // match exato vence
+    else if(nf.startsWith(np)||np.startsWith(nf)) sc=np.length; // senão, prefixo mais longo
+    if(sc>bestScore){bestScore=sc;best=i;}
+  });
+  return best;
+}
+function passedCount(cs,phase){let c=0;for(const r of cs)if(r.seq.indexOf(phase)>=0)c++;return c;}
+
+const MAIN_PHASES=["ASSINADO PEND. ASSESSORIA","ASSINADO – NO CARTORIO","REGISTRADO","FINALIZADO"];
+const FRIENDLY={"ASSINADO PEND. ASSESSORIA":"Pend. Assessoria","ASSINADO – NO CARTORIO":"No cartório",
+  "REGISTRADO":"Registrado","FINALIZADO":"Finalizado"};
+window.__chartMode='main';
+
+function buildPhaseChart(cs){
+  const mode=window.__chartMode;
+  let items;
+  if(mode==='main'){
+    items=[{p:'__ALL__',lab:'Minutas emitidas',n:cs.length}]
+      .concat(MAIN_PHASES.map(p=>({p,lab:FRIENDLY[p]||(ABBR[p]||p),n:passedCount(cs,p)})));
+  }else{
+    items=PHASE_NAMES.map(p=>({p,lab:ABBR[p]||p,n:passedCount(cs,p)}));
+  }
+  const maxV=Math.max(1,...items.map(c=>c.n));
+  const box=document.getElementById('phaseChart');
+  const padT=12,plotH=178;
+  if(mode==='main'){
+    // poucas barras -> responsivo, sem rolagem, rótulos retos
+    const n=items.length, W=600, padL=38, botH=42, H=padT+plotH+botH;
+    const slot=(W-padL-10)/n, bw=Math.min(74,slot*0.5);
+    let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">`;
+    for(let g=0;g<=3;g++){const yv=maxV*g/3,y=padT+plotH-(yv/maxV)*plotH;
+      svg+=`<line x1="${padL}" y1="${y}" x2="${W-6}" y2="${y}" stroke="var(--line)"/>`;
+      svg+=`<text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="10" fill="var(--ink-soft)">${Math.round(yv)}</text>`;}
+    items.forEach((c,i)=>{
+      const cx=padL+i*slot+slot/2, x=cx-bw/2, h=(c.n/maxV)*plotH, y=padT+plotH-h;
+      const isPend=/PEND\. ASSESS/.test(c.p), isAll=c.p==='__ALL__';
+      const fill=isAll?'#5b6670':(isPend?'var(--warn)':(/CARTORIO|REGISTRADO|FINALIZADO/.test(c.p)?'var(--ok)':'var(--accent)'));
+      svg+=`<rect class="bar" data-phase="${c.p.replace(/"/g,'&quot;')}" x="${x}" y="${y}" width="${bw}" height="${Math.max(0,h)}" rx="3" fill="${fill}"><title>${c.lab}: ${c.n}</title></rect>`;
+      svg+=`<text x="${cx}" y="${y-5}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${c.n}</text>`;
+      svg+=`<text class="barlbl" data-phase="${c.p.replace(/"/g,'&quot;')}" x="${cx}" y="${padT+plotH+18}" text-anchor="middle" font-size="11" fill="var(--ink)">${c.lab}</text>`;
+    });
+    svg+=`</svg>`;
+    box.style.overflowX='visible';
+    box.innerHTML=svg;
+  }else{
+    // todas as fases -> rolagem horizontal, rótulos girados
+    const slot=26,bw=16,padL=34,botH=128,W=padL+items.length*slot+10,H=padT+plotH+botH;
+    let svg=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:none">`;
+    for(let g=0;g<=3;g++){const yv=maxV*g/3,y=padT+plotH-(yv/maxV)*plotH;
+      svg+=`<line x1="${padL}" y1="${y}" x2="${W-6}" y2="${y}" stroke="var(--line)"/>`;
+      svg+=`<text x="${padL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="var(--ink-soft)">${Math.round(yv)}</text>`;}
+    items.forEach((c,i)=>{
+      const x=padL+i*slot+(slot-bw)/2, h=(c.n/maxV)*plotH, y=padT+plotH-h;
+      const isPend=/PEND\. ASSESS/.test(c.p);
+      const fill=isPend?'var(--warn)':'var(--accent)';
+      svg+=`<rect class="bar" data-phase="${c.p.replace(/"/g,'&quot;')}" x="${x}" y="${y}" width="${bw}" height="${Math.max(0,h)}" rx="2" fill="${fill}"><title>${c.p}: ${c.n}</title></rect>`;
+      if(c.n>0) svg+=`<text x="${x+bw/2}" y="${y-3}" text-anchor="middle" font-size="8.5" fill="var(--ink-soft)">${c.n}</text>`;
+      const lx=padL+i*slot+slot/2, ly=padT+plotH+8, lbl=c.lab.length>17?c.lab.slice(0,16)+'…':c.lab;
+      svg+=`<text class="barlbl" data-phase="${c.p.replace(/"/g,'&quot;')}" x="${lx}" y="${ly}" font-size="9" fill="${isPend?'var(--warn)':'var(--ink)'}" transform="rotate(55 ${lx} ${ly})">${lbl}</text>`;
+    });
+    svg+=`</svg>`;
+    box.style.overflowX='auto';
+    box.innerHTML=svg;
+  }
+  box.querySelectorAll('[data-phase]').forEach(el=>el.addEventListener('click',()=>reportByPhase(el.getAttribute('data-phase'))));
+}
+
+function buildFaseList(cs){
+  const fd={}; cs.forEach(r=>{fd[r.fase]=(fd[r.fase]||0)+1;});
+  const arr=Object.entries(fd).map(([f,n])=>({f,n,idx:faseToIdx(f)})).sort((a,b)=>a.idx-b.idx || b.n-a.n);
+  const box=document.getElementById('faseList');
+  box.innerHTML=arr.map(o=>{
+    const cls=/PEND\. ASSESS/i.test(o.f)?'fl pend':/CARTORIO|REGISTRADO|FINALIZADO/i.test(o.f)?'fl done':'fl';
+    return `<div class="${cls}" data-fase="${(o.f||'').replace(/"/g,'&quot;')}"><span class="dot"></span><span>${o.f||'—'}</span><span class="q">${o.n}</span></div>`;
+  }).join('');
+  box.querySelectorAll('[data-fase]').forEach(el=>el.addEventListener('click',()=>reportByFase(el.getAttribute('data-fase'))));
+}
+
+/* helper: barras horizontais (rótulo clicável via data-gofase) */
+function hbars(items,maxV){
+  return items.map(o=>{
+    const w=Math.round(100*o.n/maxV);
+    const cls=/PEND\. ASSESS/i.test(o.label)?'hbar pend':/CARTORIO|REGISTRADO|FINALIZADO/i.test(o.label)?'hbar done':'hbar';
+    const lab=o.go?`<span class="hl-lab" data-gofase="${(o.label||'').replace(/"/g,'&quot;')}">${o.label||'—'}</span>`:`<span class="hl-lab">${o.label||'—'}</span>`;
+    return `<div class="${cls}">${lab}<div class="track"><div class="fillb" style="width:${w}%"></div></div><div class="hl-q">${o.n}</div></div>`;
+  }).join('');
+}
+function openReport(html){
+  document.getElementById('phaseReport').innerHTML=html;
+  document.getElementById('p1normal').classList.add('hidden');
+  document.getElementById('phaseReport').classList.remove('hidden');
+  document.querySelectorAll('#phaseReport [data-gofase]').forEach(el=>el.addEventListener('click',()=>reportByFase(el.getAttribute('data-gofase'))));
+  window.scrollTo(0,0);
+}
+
+/* ---------- relatório: PASSOU POR <fase>  →  mostra em que FASE estão ---------- */
+function reportByPhase(phase){
+  const cs=window.__CSfull||casesOf(CUR);
+  const all = phase==='__ALL__';
+  const passa= all? cs.slice() : cs.filter(r=>r.seq.indexOf(phase)>=0);
+  const total=cs.length, n=passa.length;
+  const idx=all?-1:PHASE_NAMES.indexOf(phase);
+  const agora= all?0:passa.filter(r=>faseToIdx(r.fase)===idx).length;
+  const FINALSET=new Set(["ASSINADO – NO CARTORIO","REGISTRADO","FINALIZADO"].map(normFase));
+  const concl=passa.filter(r=>FINALSET.has(normFase(r.fase))).length;
+  const fd={};passa.forEach(r=>{fd[r.fase]=(fd[r.fase]||0)+1;});
+  const fdArr=Object.entries(fd).map(([f,c])=>({label:f,n:c,go:true,idx:faseToIdx(f)})).sort((a,b)=>a.idx-b.idx||b.n-a.n);
+  const isPend=/PEND\. ASSESS/i.test(phase);
+  const titulo= all?'Todas as minutas emitidas':('Passaram por: '+phase);
+
+  let html=`<div class="rhead"><button class="rback" onclick="closePhaseReport()">← Voltar</button><h2>${titulo}</h2></div>
+   <div class="src">Minutas de ${ymLabel(CUR)}${all?'':' que passaram por esta fase em algum momento'}. Clique numa FASE abaixo para ver os caminhos daquele grupo.</div>
+   <div class="cards" style="margin-bottom:16px">
+     <div class="card"><div class="n">${n}</div><div class="lbl">${all?'Minutas no mês':'Passaram por esta fase'} ${all?'':'<span class="pill warn">'+(total?Math.round(1000*n/total)/10:0)+'% do mês</span>'}</div></div>
+     ${all?'':`<div class="card ${isPend?'alarm':'hero'}"><div class="n">${agora}</div><div class="lbl">Estão <b>nesta fase agora</b></div></div>
+     <div class="card"><div class="n">${n-agora}</div><div class="lbl">Já avançaram</div></div>`}
+     <div class="card"><div class="n">${concl}</div><div class="lbl">Já concluídas <span class="pill warn">${n?Math.round(1000*concl/n)/10:0}%</span></div></div>
+   </div>
+   <div class="section-label">Em que FASE estão agora ${all?'':'(quem passou por “'+phase+'”)'}</div>
+   <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px">${hbars(fdArr,n||1)}</div>
+   <div class="src">Barras clicáveis → caminhos do grupo.</div>
+   <div class="section-label">Casos (${n})</div>
+   <div class="tablewrap"><table><thead><tr><th>Minuta</th><th>Contrato</th><th>Unidade</th><th>Comprador</th><th>Status atual</th><th>Trajeto</th></tr></thead><tbody>`+
+   passa.slice().sort((a,b)=>b.dm-a.dm).map(c=>`<tr><td>${fmtDay(c.dm.getTime())}</td><td>${c.contrato}</td><td>${c.unidade}</td><td>${c.comprador}</td><td>${badge(c.fase)}</td><td class="path">${hl(c.traj)}</td></tr>`).join('')+
+   `</tbody></table></div>`;
+  openReport(html);
+}
+
+/* ---------- relatório: VENDAS EM <FASE>  →  mostra os caminhos percorridos ---------- */
+function reportByFase(fase){
+  const cs=window.__CSfull||casesOf(CUR);
+  const grupo=cs.filter(r=>r.fase===fase);
+  const n=grupo.length, total=cs.length;
+  // caminhos distintos
+  const tmap={};grupo.forEach(r=>{const k=r.seq.join('|');(tmap[k]=tmap[k]||{n:0,p:r.traj}).n++;});
+  const paths=Object.values(tmap).sort((a,b)=>b.n-a.n);
+  const avgLen=n?Math.round(grupo.reduce((s,r)=>s+r.seq.length,0)/n*10)/10:0;
+  // fases por onde passaram (top, p/ contexto)
+  const pc={};grupo.forEach(r=>r.seq.forEach(p=>{pc[p]=(pc[p]||0)+1;}));
+  const pcArr=Object.entries(pc).map(([p,c])=>({label:ABBR[p]||p,n:c})).sort((a,b)=>b.n-a.n).slice(0,10);
+  const isPend=/PEND\. ASSESS/i.test(fase);
+
+  let html=`<div class="rhead"><button class="rback" onclick="closePhaseReport()">← Voltar</button><h2>Em ${fase}</h2></div>
+   <div class="src">Minutas de ${ymLabel(CUR)} cujo status atual é “${fase}”. Abaixo, os caminhos que percorreram até aqui.</div>
+   <div class="cards" style="margin-bottom:16px">
+     <div class="card ${isPend?'alarm':'hero'}"><div class="n">${n}</div><div class="lbl">Vendas nesta fase <span class="pill warn">${total?Math.round(1000*n/total)/10:0}% do mês</span></div></div>
+     <div class="card"><div class="n">${paths.length}</div><div class="lbl">Caminhos distintos até aqui</div></div>
+     <div class="card"><div class="n">${avgLen}</div><div class="lbl">Média de fases percorridas</div></div>
+   </div>
+   <div class="section-label">Caminhos percorridos (${paths.length})</div>
+   <div class="pathlist">`+
+   paths.map(t=>`<div class="pr"><div class="cnt">${t.n}</div><div class="pp">${hl(t.p)}</div></div>`).join('')+
+   `</div>
+   <div class="section-label">Fases mais percorridas por este grupo</div>
+   <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px">${hbars(pcArr,Math.max(1,...pcArr.map(o=>o.n)))}</div>
+   <div class="section-label">Casos (${n})</div>
+   <div class="tablewrap"><table><thead><tr><th>Minuta</th><th>Contrato</th><th>Unidade</th><th>Comprador</th><th>Status atual</th><th>Trajeto</th></tr></thead><tbody>`+
+   grupo.slice().sort((a,b)=>b.dm-a.dm).map(c=>`<tr><td>${fmtDay(c.dm.getTime())}</td><td>${c.contrato}</td><td>${c.unidade}</td><td>${c.comprador}</td><td>${badge(c.fase)}</td><td class="path">${hl(c.traj)}</td></tr>`).join('')+
+   `</tbody></table></div>`;
+  openReport(html);
+}
+
+/* ---------- todos os caminhos / ramificações ---------- */
+function openAllPaths(){
+  const cs=window.__CSfull||casesOf(CUR);
+  const tmap={};cs.forEach(r=>{const k=r.seq.join('|');(tmap[k]=tmap[k]||{n:0,p:r.traj}).n++;});
+  const paths=Object.values(tmap).sort((a,b)=>b.n-a.n);
+  window.__ALLPATHS=paths;
+  const html=`<div class="rhead"><button class="rback" onclick="closePhaseReport()">← Voltar</button><h2>Todos os caminhos — ${ymLabel(CUR)}</h2></div>
+   <div class="src">${paths.length} caminhos distintos entre ${cs.length} minutas. Ordenado pelos mais frequentes. Use a busca para achar caminhos que passam por uma fase.</div>
+   <div class="controls"><input id="pathSearch" placeholder="Filtrar caminhos por fase (ex.: PEND.ASS, Cartório)…"><span class="count" id="pathCount"></span></div>
+   <div class="pathlist" id="allPathList"></div>`;
+  openReport(html);
+  const inp=document.getElementById('pathSearch');
+  const draw=()=>{const q=(inp.value||'').trim().toLowerCase();
+    const f=window.__ALLPATHS.filter(t=>!q||t.p.toLowerCase().includes(q));
+    document.getElementById('pathCount').textContent=f.length+' de '+window.__ALLPATHS.length+' · '+f.reduce((s,t)=>s+t.n,0)+' minutas';
+    document.getElementById('allPathList').innerHTML=f.map(t=>`<div class="pr"><div class="cnt">${t.n}</div><div class="pp">${hl(t.p)}</div></div>`).join('');};
+  inp.addEventListener('input',draw); draw();
+}
+
+function closePhaseReport(){
+  const rep=document.getElementById('phaseReport');
+  if(rep){rep.classList.add('hidden');rep.innerHTML='';}
+  const nm=document.getElementById('p1normal'); if(nm) nm.classList.remove('hidden');
+}
+
+/* controles estáticos (uma vez) */
+(function wireStatic(){
+  const seg=document.getElementById('chartSeg');
+  if(seg) seg.querySelectorAll('.segb').forEach(b=>b.addEventListener('click',()=>{
+    seg.querySelectorAll('.segb').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); window.__chartMode=b.getAttribute('data-mode');
+    if(window.__CSfull) buildPhaseChart(window.__CSfull);
+  }));
+  const ap=document.getElementById('allPathsBtn');
+  if(ap) ap.addEventListener('click',openAllPaths);
+})();
+
+function badge(f){let c='badge';if(/PEND\. ASSESS/i.test(f))c='badge pend';
+ else if(/CARTORIO/i.test(f))c='badge cart';else if(/REGISTRADO|ENTREGUE AO REGISTRO/i.test(f))c='badge reg';
+ return `<span class="${c}">${f||'—'}</span>`;}
+function fmtDay(t){const d=new Date(t);return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);}
+
+function renderTable(){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const ff=document.getElementById('fFase').value;
+  let rs=window.__CS.filter(c=>{
+    if(ff&&c.fase!==ff)return false;
+    if(q&&!(c.contrato+' '+c.comprador+' '+c.unidade+' '+c.empreend).toLowerCase().includes(q))return false;
+    return true;});
+  rs.sort((a,b)=>{let x=a[sk],y=b[sk];if(typeof x==='string')x=x.toLowerCase();if(typeof y==='string')y=y.toLowerCase();
+    return x>y?sd:x<y?-sd:0;});
+  document.getElementById('count').textContent=rs.length+' de '+window.__CS.length;
+  document.getElementById('tbody').innerHTML=rs.map(c=>
+    `<tr><td>${fmtDay(c.dms)}</td><td>${c.contrato}</td><td>${c.unidade}</td><td>${c.comprador}</td>
+     <td>${badge(c.fase)}</td><td class="path">${hl(c.traj)}</td></tr>`).join('');
+}
+document.getElementById('q').addEventListener('input',renderTable);
+document.getElementById('fFase').addEventListener('change',renderTable);
+document.querySelectorAll('#p1 th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;sd=(sk===k)?-sd:1;sk=k;renderTable();});
+
+/* ---------- PÁGINA 2 ---------- */
+function renderP2(){
+  const prev=prevYm(CUR);
+  const hasPrev=RECS.some(r=>r.ymv===prev);
+  const D=maxDay(CUR);
+  const jun=kpis(RECS,CUR,D);            // mês atual no período 1..D
+  document.getElementById('p2title').textContent='Resumo Operacional — '+ymLabel(CUR);
+  document.getElementById('p2ref').textContent='Comparativo vs '+(hasPrev?ymLabel(prev):'—');
+  if(!hasPrev){
+    document.getElementById('p2src').textContent='Não há dados do mês anterior na base carregada para comparar.';
+    document.getElementById('verdictBox').innerHTML='';
+    document.getElementById('scorecard').innerHTML='';
+    document.getElementById('matnote').innerHTML='';
+    document.getElementById('cmptbl').innerHTML='';
+    document.getElementById('p2foot').innerHTML='';
+    return;
+  }
+  const maiF=kpis(RECS,prev);            // mês anterior inteiro
+  const maiM=kpis(RECS,prev,D);          // mês anterior mesmo período 1..D
+  document.getElementById('p2src').innerHTML=
+   `Comparações: <b>${ymLabel(prev)} inteiro</b> (${maiF.n}) e <b>${ymLabel(prev)} no mesmo período</b> (1–${D}, ${maiM.n}). `+
+   `${ymLabel(CUR)} usa 1–${D} (${jun.n}) para a comparação justa.`;
+
+  const dDev=Math.round((jun.devreg-maiM.devreg)*10)/10;
+  const worse=dDev>2;
+  document.getElementById('verdictBox').innerHTML=
+   `<div class="verdict ${worse?'bad':'good'}"><div class="tag">${worse?'⚠ Atenção do mês':'✓ Sob controle'}</div>
+    <h2>${worse?'A devolução da assessoria subiu':'Devolução da assessoria estável ou melhor'}</h2>
+    <p>Entre as minutas que chegaram ao registro, <b>${jun.devreg}%</b> voltaram pra assessoria em ${ymLabel(CUR)}, contra <b>${maiM.devreg}%</b> em ${ymLabel(prev)} no mesmo período (${dDev>=0?'+':''}${dDev} p.p.). As minutas do mês corrente são mais novas (menos tempo pra voltar), então o quadro real tende a ser ${worse?'ainda pior':'parecido ou melhor'}.</p></div>`;
+
+  function delta(cur,base,goodDown){const d=Math.round((cur-base)*10)/10;const good=goodDown?d<0:d>0;
+    return `<b style="color:${good?'var(--ok)':'var(--stop)'}">${d>=0?'+':''}${d}</b>`;}
+  const volPct=maiM.n?Math.round(100*(jun.n-maiM.n)/maiM.n*10)/10:0;
+  const K=[
+   {cls:worse?'bad':'good',name:'Taxa de devolução da assessoria',desc:'voltou ao Pend. após chegar ao registro',
+    big:jun.devreg+'%',bigcls:worse?'bad':'good',
+    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.devreg}% • inteiro: ${maiF.devreg}%<br>${delta(jun.devreg,maiM.devreg,true)} p.p. vs mesmo período`,
+    tag:worse?'Ruim':'Ok',tagcls:worse?'bad':'good'},
+   {cls:Math.abs(volPct)>15?'warns':'good',name:'Volume emitido (1–'+D+')',desc:'minutas com DATA MINUTA no período',
+    big:jun.n,bigcls:'',
+    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.n}<br><b style="color:${Math.abs(volPct)>15?'var(--warn)':'var(--ink-soft)'}">${volPct>=0?'+':''}${volPct}%</b> vs mesmo período`,
+    tag:Math.abs(volPct)>15?'Atenção':'Estável',tagcls:Math.abs(volPct)>15?'warns':'good'},
+   {cls:'good',name:'Tempo de processamento (fwd)',desc:'mediana Pend.→Registro quando flui pra frente',
+    big:(jun.fwd_med==null?'—':jun.fwd_med+'d'),bigcls:'good',
+    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.fwd_med==null?'—':maiM.fwd_med+'d'}<br>base pequena (n=${jun.fwd_n})`,
+    tag:'Ok',tagcls:'good'},
+   {cls:'na',name:'Chegou ao registro / Concluído',desc:'% do lote — afetado por maturação do mês corrente',
+    big:jun.final_p+'%',bigcls:'',
+    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.final_p}%<br><b style="color:var(--gray)">não comparável</b> · minutas jovens`,
+    tag:'Maturação',tagcls:'na'},
+  ];
+  document.getElementById('scorecard').innerHTML=K.map(k=>`
+   <div class="kpi ${k.cls}"><div class="stripe"></div>
+    <div><div class="name">${k.name} <span class="verdtag ${k.tagcls}">${k.tag}</span></div>
+     <div class="desc">${k.desc}</div></div>
+    <div class="vals"><div class="big ${k.bigcls}">${k.big}</div><div class="cmp">${k.cmp}</div></div></div>`).join('');
+
+  document.getElementById('matnote').innerHTML=
+   '<b>Por que “Concluído” pode despencar e não ser alarme:</b> as minutas do mês corrente têm poucos dias de vida e muitas ainda estão andando; as do mês anterior já tiveram tempo de fechar. Comparar conclusão entre lotes de idades diferentes engana — só vale no fechamento. A devolução, ao contrário, já aparece cedo: por isso é o número que importa agora.';
+
+  const rows=[
+   ['Minutas emitidas',jun.n,maiF.n,maiM.n,''],
+   ['Passaram por Pend. Assessoria',jun.passou+' ('+jun.passou_p+'%)',maiF.passou+' ('+maiF.passou_p+'%)',maiM.passou+' ('+maiM.passou_p+'%)',''],
+   ['Devoluções (Registro→Pend)',jun.devol,maiF.devol,maiM.devol,''],
+   ['Taxa de devolução (sobre os que chegaram ao registro)',jun.devreg+'%',maiF.devreg+'%',maiM.devreg+'%',worse?'ruim':''],
+   ['Tempo mediana fwd (dias)',jun.fwd_med==null?'—':jun.fwd_med,maiF.fwd_med==null?'—':maiF.fwd_med,maiM.fwd_med==null?'—':maiM.fwd_med,''],
+   ['Chegou ao registro',jun.reg_p+'%',maiF.reg_p+'%',maiM.reg_p+'%','mat'],
+   ['Concluído (cartório/registrado)',jun.final_p+'%',maiF.final_p+'%',maiM.final_p+'%','mat'],
+  ];
+  document.getElementById('cmptbl').innerHTML=
+   `<thead><tr><th>KPI</th><th>${ymLabel(CUR)} (1–${D})</th><th>${ymLabel(prev)} inteiro</th><th>${ymLabel(prev)} (1–${D})</th></tr></thead><tbody>`+
+   rows.map(r=>{let st=r[4]==='ruim'?' style="color:var(--stop);font-weight:700"':r[4]==='mat'?' style="color:var(--gray)"':'';
+    return `<tr><td>${r[0]}</td><td${st}>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`;}).join('')+'</tbody>';
+  document.getElementById('p2foot').innerHTML='“Chegou ao registro” e “Concluído” em cinza por maturação — reavaliar no fechamento do mês.';
+}
+
+/* ---------- PÁGINA 3 — OVERVIEW ANUAL ---------- */
+const METRICS={
+  vol:   {label:'Volume de minutas emitidas', get:k=>k.n,            fmt:v=>v, goodUp:true,  pct:true,  unit:''},
+  devreg:{label:'Taxa de devolução',          get:k=>k.n?k.devreg:null, fmt:v=>v+'%', goodUp:false, pct:false, unit:' p.p.'},
+  devol: {label:'Devoluções (qtd)',           get:k=>k.n?k.devol:null,  fmt:v=>v, goodUp:false, pct:true,  unit:''},
+  final: {label:'Concluído (%)',              get:k=>k.n?k.final_p:null,fmt:v=>v+'%', goodUp:true,  pct:false, unit:' p.p.'},
+  reg:   {label:'Chegou ao registro (%)',     get:k=>k.n?k.reg_p:null,  fmt:v=>v+'%', goodUp:true,  pct:false, unit:' p.p.'},
+  fwd:   {label:'Tempo mediana fwd (dias)',   get:k=>k.fwd_med,         fmt:v=>v+'d', goodUp:false, pct:false, unit:'d'},
+};
+const MESF=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function yearsAvailable(){const s=new Set(RECS.map(r=>Math.floor(r.ymv/100)));return [...s].sort((a,b)=>b-a);}
+
+function renderP3(){
+  const metric=document.getElementById('metricSel').value;
+  const M=METRICS[metric];
+  const now=new Date(); const nowYm=now.getFullYear()*100+(now.getMonth()+1);
+  // anos a comparar: o mais recente (com 2026) vs o anterior; mantém 2026 e 2025 como pedido, mas generaliza
+  const yrs=yearsAvailable();
+  const Y2 = yrs.includes(2026)?2026:yrs[0];          // ano "atual"
+  const Y1 = yrs.includes(2025)?2025:(yrs.find(y=>y<Y2)||Y2-1); // ano anterior
+  document.getElementById('p3title').textContent='Overview Anual — '+Y2+' vs '+Y1;
+  document.getElementById('p3ref').textContent=M.label;
+  document.getElementById('p3hint').textContent='12 meses · ⚠ = futuro/parcial';
+
+  // monta linhas por mês
+  const monthly=[];
+  for(let m=1;m<=12;m++){
+    const k2=kpis(RECS,Y2*100+m), k1=kpis(RECS,Y1*100+m);
+    const v2=M.get(k2), v1=M.get(k1);
+    const future = (Y2*100+m)>nowYm;
+    const partial = (Y2*100+m)===nowYm;
+    monthly.push({m,v1,v2,n1:k1.n,n2:k2.n,future,partial});
+  }
+  // totais / YTD
+  const ms2=monthly.filter(r=>r.n2>0).map(r=>r.m);                 // meses com dado em Y2
+  const totN2=monthly.reduce((s,r)=>s+r.n2,0), totN1=monthly.reduce((s,r)=>s+r.n1,0);
+  const ytdN1=monthly.filter(r=>ms2.includes(r.m)).reduce((s,r)=>s+r.n1,0);
+
+  // cards resumo (sempre em volume, que é o que faz sentido somar)
+  const dYtd = ytdN1? Math.round(100*(totN2-ytdN1)/ytdN1*10)/10 : 0;
+  document.getElementById('p3cards').innerHTML=`
+    <div class="card"><div class="n">${totN2}</div><div class="lbl">Minutas em ${Y2} (até agora)</div></div>
+    <div class="card"><div class="n">${totN1}</div><div class="lbl">Minutas em ${Y1} (ano inteiro)</div></div>
+    <div class="card hero"><div class="n">${dYtd>=0?'+':''}${dYtd}%</div><div class="lbl">${Y2} vs ${Y1} no <b>mesmo conjunto de meses</b> (${ms2.map(m=>MESF[m-1]).join(', ')||'—'})</div><div class="sub">${totN2} vs ${ytdN1} minutas.</div></div>`;
+
+  // gráfico de barras agrupadas (SVG responsivo)
+  const vals=[]; monthly.forEach(r=>{if(r.v1!=null)vals.push(r.v1);if(r.v2!=null)vals.push(r.v2);});
+  const maxV=Math.max(1,...vals);
+  const W=720,H=240,padL=34,padB=26,padT=10,plotH=H-padB-padT,plotW=W-padL-8;
+  const gw=plotW/12, bw=gw*0.30;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto">`;
+  // grid + eixo y (3 marcas)
+  for(let g=0;g<=3;g++){const yv=maxV*g/3, y=padT+plotH-(yv/maxV)*plotH;
+    svg+=`<line x1="${padL}" y1="${y}" x2="${W-8}" y2="${y}" stroke="var(--line)"/>`;
+    svg+=`<text x="${padL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="var(--ink-soft)">${Math.round(yv)}</text>`;}
+  monthly.forEach((r,i)=>{
+    const cx=padL+i*gw+gw/2;
+    const drawBar=(v,off,fill,dim)=>{ if(v==null)return '';
+      const h=(v/maxV)*plotH, y=padT+plotH-h;
+      return `<rect x="${cx+off}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${fill}" opacity="${dim?0.5:1}"/>`;};
+    svg+=drawBar(r.v1,-bw-1,'#9bb4c4',false);                       // ano anterior (cinza-azul)
+    svg+=drawBar(r.v2,1,'var(--accent)',r.future||r.partial);       // ano atual
+    svg+=`<text x="${cx}" y="${H-9}" text-anchor="middle" font-size="9" fill="${(r.future)?'#c2c8cd':'var(--ink-soft)'}">${MESF[r.m-1]}${r.partial?'*':''}</text>`;
+  });
+  svg+=`</svg>`;
+  // legenda
+  svg+=`<div style="display:flex;gap:16px;justify-content:center;font-size:11px;color:var(--ink-soft);margin-top:4px">
+    <span><span style="display:inline-block;width:10px;height:10px;background:#9bb4c4;border-radius:2px;margin-right:5px"></span>${Y1}</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:var(--accent);border-radius:2px;margin-right:5px"></span>${Y2}</span>
+    <span>* mês parcial</span></div>`;
+  document.getElementById('annualChart').innerHTML=svg;
+
+  // tabela
+  function cell(v){return v==null?'<span style="color:var(--gray)">—</span>':M.fmt(v);}
+  function deltaCell(r){
+    if(r.v1==null||r.v2==null) return '<span style="color:var(--gray)">—</span>';
+    let d=Math.round((r.v2-r.v1)*10)/10;
+    const good = M.goodUp? d>0 : d<0;
+    const col = d===0?'var(--ink-soft)':(good?'var(--ok)':'var(--stop)');
+    let disp;
+    if(M.pct){ const p=r.v1?Math.round(100*(r.v2-r.v1)/r.v1*10)/10:0; disp=(d>=0?'+':'')+d+' ('+(p>=0?'+':'')+p+'%)'; }
+    else { disp=(d>=0?'+':'')+d+M.unit; }
+    return `<b style="color:${col}">${disp}</b>`;
+  }
+  let body=monthly.map(r=>{
+    const tag=r.future?' <span class="verdtag na">futuro</span>':r.partial?' <span class="verdtag warns">parcial</span>':'';
+    return `<tr><td>${MESF[r.m-1]}${tag}</td><td>${cell(r.v1)}</td><td>${cell(r.v2)}</td><td>${deltaCell(r)}</td></tr>`;
+  }).join('');
+  document.getElementById('annualTbl').innerHTML=
+    `<thead><tr><th>Mês</th><th>${Y1}</th><th>${Y2}</th><th>Δ ${Y2} vs ${Y1}</th></tr></thead><tbody>${body}</tbody>`;
+
+  // nota contextual por métrica
+  let note='';
+  if(metric==='final'||metric==='reg'){
+    note='<b>Não compare este indicador ano contra ano.</b> Dois vieses: (1) maturação — meses recentes de '+Y2+' ainda têm minutas em andamento; (2) rastreamento incompleto no começo de '+Y1+' (jan/'+Y1+' aparece com ~0% chegando ao registro porque o status não era preenchido). Volume é o indicador confiável aqui.';
+  }else if(metric==='devreg'||metric==='devol'){
+    note='<b>Devolução ano contra ano é traiçoeira.</b> Em '+Y1+' o carimbo de Pend. costumava vir ANTES do registro (etapa do fluxo); em '+Y2+' vem DEPOIS (devolução). Logo o salto de ~5% para ~30% mistura mudança de processo com piora real. Confie mais na comparação <b>mês a mês dentro do mesmo ano</b> (ex.: mai→jun) do que no '+Y2+' vs '+Y1+'.';
+  }else if(metric==='vol'){
+    note='<b>Indicador confiável para comparar anos</b> — depende só da DATA MINUTA. O mês corrente (*) é parcial; meses futuros não têm dado. Os cards acima já comparam '+Y2+' vs '+Y1+' no mesmo conjunto de meses, que é a leitura justa.';
+  }else{
+    note='Tempo fwd usa só os casos em que Pend. precedeu o Registro (minoria) — base pequena, leia como tendência, não como número fechado.';
+  }
+  document.getElementById('p3note').innerHTML=note;
+  document.getElementById('p3foot').innerHTML='Δ em verde = melhora, vermelho = piora (direção depende da métrica). Meses sem dado aparecem como “—”.';
+}
+document.getElementById('metricSel').addEventListener('change',renderP3);
+</script>
+</body></html>
