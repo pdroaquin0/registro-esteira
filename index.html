@@ -23,15 +23,19 @@
 </script>
 <style>
 :root{--ink:#1c2126;--ink-soft:#5b6670;--line:#e2e5e8;--bg:#f6f7f8;--card:#fff;
---ok:#1f7a55;--warn:#b4541a;--stop:#a32f2f;--accent:#1b4d6b;--accent-soft:#eaf1f5;--gray:#8a949c}
+--ok:#1f7a55;--warn:#b4541a;--stop:#b3261e;--accent:#e92224;--accent-soft:#fdecec;--gray:#8a949c}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 background:var(--bg);color:var(--ink);line-height:1.45}
-.wrap{max-width:1040px;margin:0 auto;padding:0 16px 70px}
-.topbar{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:2px solid var(--ink);
-padding:12px 16px 0;max-width:1040px;margin:0 auto}
+.wrap{max-width:none;margin:0 auto;padding:0 24px 70px}
+.topbar{position:sticky;top:0;z-index:30;background:#fff;border-bottom:3px solid var(--accent);
+padding:12px 24px 0;max-width:none;margin:0 auto}
 .topbar .row1{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-.brand{font-size:15px;font-weight:700;margin-right:auto}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.brand .logo{height:34px;width:auto;display:block}
+.brand .brandtxt{font-size:14px;font-weight:700;color:var(--ink);line-height:1.1;border-left:1px solid var(--line);padding-left:12px}
+.brand .brandsub{display:block;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.5px;text-transform:uppercase}
+@media(max-width:560px){.brand .brandtxt{display:none}}
 .muted{color:var(--ink-soft);font-size:12px}
 select,.btn,input[type=file]{font:inherit}
 .msel{font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
@@ -41,7 +45,7 @@ color:#fff;border-radius:8px;cursor:pointer}
 .tabs{display:flex;gap:4px}
 .tabs button{font-size:13px;font-weight:600;border:1px solid var(--line);border-bottom:none;background:#eef1f3;
 color:var(--ink-soft);padding:9px 16px;border-radius:8px 8px 0 0;cursor:pointer}
-.tabs button.active{background:#fff;color:var(--ink);border-color:var(--ink);border-bottom:2px solid #fff;margin-bottom:-2px}
+.tabs button.active{background:#fff;color:var(--accent);border-color:var(--accent);border-bottom:3px solid #fff;margin-bottom:-3px}
 .page{display:none;padding-top:22px}.page.active{display:block}
 header.ph{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:4px}
 header.ph h1{font-size:19px;letter-spacing:-.2px}
@@ -107,11 +111,14 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
 .cmptbl tr:last-child td{border-bottom:none}
 .annualchart{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 12px 8px}
 /* funil topo p1 */
-.p1top{display:grid;grid-template-columns:1fr 290px;gap:14px;margin-bottom:6px}
+.p1top{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:6px}
 @media(max-width:780px){.p1top{grid-template-columns:1fr}}
 .chartbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 6px 6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .faselist-title{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:6px}
-.faselist{background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px 0;max-height:392px;overflow:auto}
+.faselist{background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px 0;overflow:visible}
+.pathbtn{border:1px solid var(--accent)!important;border-radius:8px;color:var(--accent)!important;background:#fff!important}
+.pathbtn:hover{background:var(--accent-soft)!important}
+.p1top{align-items:start}
 .faselist .fl{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line);font-size:12.5px;cursor:pointer}
 .faselist .fl:last-child{border-bottom:none}
 .faselist .fl:hover{background:#fbfcfd}
@@ -141,6 +148,30 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
 .pathlist .pr:last-child{border-bottom:none}
 .pathlist .pr .cnt{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
 .pathlist .pr .pp{font-size:11.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.7;word-break:break-word}
+.pathlist .pr2{display:grid;grid-template-columns:44px 1fr 58px;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.pathlist .pr2:last-child{border-bottom:none}
+.pathlist .pr2 .cnt{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.pathlist .pr2 .pp{font-size:11.5px;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.7;word-break:break-word}
+.pathlist .pr2 .sla{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;color:var(--accent)}
+.pathlist .pr2.head{position:sticky;top:0;background:#fafbfc;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft)}
+.pathlist .pr2.head .cnt,.pathlist .pr2.head .sla{font-weight:600;color:var(--ink-soft)}
+/* SLA tab */
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+.chip{font:inherit;font-size:11.5px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:4px 9px;border-radius:16px;cursor:pointer;white-space:nowrap}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip.pend.active{background:var(--warn);border-color:var(--warn)}
+.agetag{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:#eef1f3;color:var(--ink-soft);margin-left:6px}
+.agetag.hot{background:#fbe4e2;color:var(--stop)}
+/* smart summary */
+.finding{display:grid;grid-template-columns:6px 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.finding .stripe{border-radius:6px;align-self:stretch}
+.finding.bad .stripe{background:var(--stop)}.finding.watch .stripe{background:var(--warn)}
+.finding.good .stripe{background:var(--ok)}.finding.info .stripe{background:var(--gray)}
+.finding .ft{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.finding .fd{font-size:13px;color:var(--ink);margin-top:4px}
+.finding .fa{font-size:12.5px;color:var(--ink-soft);margin-top:7px;border-top:1px dashed var(--line);padding-top:7px}
+.finding .fa b{color:var(--accent)}
+.bignum{font-variant-numeric:tabular-nums}
 /* report */
 #phaseReport .rhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 16px}
 #phaseReport .rback{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--accent);background:#fff;color:var(--accent);padding:7px 14px;border-radius:8px;cursor:pointer}
@@ -163,7 +194,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
 <body>
 <div class="topbar">
   <div class="row1">
-    <span class="brand">Painel de Minutas — Assessoria</span>
+    <span class="brand"><img class="logo" src="data:image/png;base64,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" alt="Metrocasa"/><span class="brandtxt">Painel de Minutas <span class="brandsub">Assessoria</span></span></span>
     <label class="muted">Mês:</label>
     <select id="monthSel" class="msel" disabled><option>—</option></select>
     <button class="btn ghost" id="reload">Trocar base</button>
@@ -173,6 +204,7 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
     <button id="b1" class="active" onclick="show(1)">Dashboard de Controle</button>
     <button id="b2" onclick="show(2)">Resumo Operacional</button>
     <button id="b3" onclick="show(3)">Overview Anual</button>
+    <button id="b4" onclick="show(4)">SLA entre Fases</button>
   </div>
 </div>
 <div class="wrap">
@@ -202,9 +234,12 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
       <div class="section-label" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span>Funil — quantas pessoas passaram por cada fase</span>
         <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink-soft)">(clique numa barra → relatório)</span>
-        <span class="seg" id="chartSeg" style="margin-left:auto">
-          <button class="segb active" data-mode="main">Principais</button>
-          <button class="segb" data-mode="all">Todas as fases</button>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <span class="seg" id="chartSeg">
+            <button class="segb active" data-mode="main">Principais</button>
+            <button class="segb" data-mode="all">Todas as fases</button>
+          </span>
+          <button class="segb pathbtn" id="allPathsBtn">Todos os caminhos →</button>
         </span>
       </div>
       <div class="p1top">
@@ -215,25 +250,24 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
         </div>
       </div>
 
-      <div class="section-label">Visão do mês</div>
-      <div class="cards" id="p1cards"></div>
-      <div class="section-label">Tempo Pend. Assessoria → Registro</div>
-      <div class="flag" id="p1flag"></div>
-      <div class="section-label" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span>Trajetos mais comuns (pelo timestamp das colunas)</span>
-        <button class="segb" id="allPathsBtn" style="margin-left:auto">Ver todos os caminhos →</button>
+      <div id="p1extra" class="hidden">
+        <div class="section-label">Visão do mês</div>
+        <div class="cards" id="p1cards"></div>
+        <div class="section-label">Tempo Pend. Assessoria → Registro</div>
+        <div class="flag" id="p1flag"></div>
+        <div class="section-label">Trajetos mais comuns (pelo timestamp das colunas)</div>
+        <div class="spine" id="p1spine"></div>
+        <div class="traj" id="trajList"></div>
+        <div class="src" id="p1trajsrc"></div>
+        <div class="section-label">Relação caso a caso</div>
+        <div class="controls">
+          <input id="q" placeholder="Buscar contrato, comprador, unidade…">
+          <select id="fFase"></select><span class="count" id="count"></span></div>
+        <div class="tablewrap"><table>
+          <thead><tr><th data-k="dms">Minuta</th><th data-k="contrato">Contrato</th><th data-k="unidade">Unidade</th>
+          <th data-k="comprador">Comprador</th><th data-k="fase">Status atual</th><th data-k="traj">Trajeto</th></tr></thead>
+          <tbody id="tbody"></tbody></table></div>
       </div>
-      <div class="spine" id="p1spine"></div>
-      <div class="traj" id="trajList"></div>
-      <div class="src" id="p1trajsrc"></div>
-      <div class="section-label">Relação caso a caso</div>
-      <div class="controls">
-        <input id="q" placeholder="Buscar contrato, comprador, unidade…">
-        <select id="fFase"></select><span class="count" id="count"></span></div>
-      <div class="tablewrap"><table>
-        <thead><tr><th data-k="dms">Minuta</th><th data-k="contrato">Contrato</th><th data-k="unidade">Unidade</th>
-        <th data-k="comprador">Comprador</th><th data-k="fase">Status atual</th><th data-k="traj">Trajeto</th></tr></thead>
-        <tbody id="tbody"></tbody></table></div>
     </div>
 
     <div id="phaseReport" class="hidden"></div>
@@ -274,6 +308,27 @@ footer{margin-top:30px;font-size:11px;color:var(--ink-soft);border-top:1px solid
     <div style="overflow:auto"><table class="cmptbl" id="annualTbl"></table></div>
     <div class="note" id="p3note"></div>
     <footer id="p3foot"></footer>
+  </div>
+
+  <!-- PÁGINA 4 — SLA ENTRE FASES -->
+  <div class="page" id="p4">
+    <header class="ph"><h1 id="p4title">SLA entre Fases</h1><div class="ref" id="p4ref"></div></header>
+    <div class="src" id="p4src"></div>
+
+    <div class="section-label">Visão geral de SLA</div>
+    <div class="cards" id="p4cards"></div>
+
+    <div class="section-label">SLA por transição (passo a passo, mais frequentes)</div>
+    <div class="src">Tempo entre cada fase e a fase imediatamente seguinte no tempo. Como são fases consecutivas no carimbo, o valor é sempre ≥ 0.</div>
+    <div style="overflow:auto"><table class="cmptbl" id="slaTransTbl"></table></div>
+
+    <div class="section-label">SLA entre fases que você escolher</div>
+    <div class="src">Selecione 2 ou mais fases. O SLA é calculado entre cada par consecutivo (na ordem do funil), só nos casos em que a 2ª fase veio depois da 1ª. Casos “para trás” (devolução) são contados à parte.</div>
+    <div class="chips" id="slaChips"></div>
+    <div style="margin:8px 0"><button class="segb" id="slaClear">Limpar seleção</button> <span class="muted" id="slaSel"></span></div>
+    <div id="slaLegs"></div>
+
+    <footer id="p4foot"></footer>
   </div>
 
 </div>
@@ -359,6 +414,7 @@ function prepare(aoa){
     for(const p in idx.phases){const dv=toDate(row[idx.phases[p]]); if(dv) ev.push([dv,p]);}
     ev.sort((a,b)=>a[0]-b[0]);
     const seq=ev.map(e=>e[1]);
+    const ts=ev.map(e=>e[0].getTime());
     recs.push({
       dm, ymv:ym(dm),
       contrato:String(row[idx.contrato]==null?"":row[idx.contrato]),
@@ -368,7 +424,7 @@ function prepare(aoa){
       fase:String(row[idx.fase]==null?"":row[idx.fase]),
       pend: toDate(row[idx.pend]),
       reg: toDate(row[idx.registro]),
-      seq, traj: seq.map(s=>ABBR[s]||s).join(" › ")
+      seq, ts, traj: seq.map(s=>ABBR[s]||s).join(" › ")
     });
   }
   return recs;
@@ -472,12 +528,10 @@ function loadFile(f){
 /* ---------- navegação ---------- */
 function show(p){
   if(!RECS.length){return;}
-  document.getElementById('p1').classList.toggle('active',p===1);
-  document.getElementById('p2').classList.toggle('active',p===2);
-  document.getElementById('p3').classList.toggle('active',p===3);
-  document.getElementById('b1').classList.toggle('active',p===1);
-  document.getElementById('b2').classList.toggle('active',p===2);
-  document.getElementById('b3').classList.toggle('active',p===3);
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('p'+i).classList.toggle('active',p===i);
+    document.getElementById('b'+i).classList.toggle('active',p===i);
+  });
   window.scrollTo(0,0);
 }
 
@@ -486,7 +540,7 @@ function maxDay(ymv){let d=0;RECS.forEach(r=>{if(r.ymv===ymv)d=Math.max(d,r.dm.g
 function casesOf(ymv){return RECS.filter(r=>r.ymv===ymv);}
 
 /* ---------- render ---------- */
-function renderAll(){renderP1();renderP2();renderP3();}
+function renderAll(){renderP1();renderP2();renderP3();renderP4();}
 
 function renderP1(){
   const k=kpis(RECS,CUR);
@@ -564,12 +618,13 @@ function buildPhaseChart(cs){
   }
   const maxV=Math.max(1,...items.map(c=>c.n));
   const box=document.getElementById('phaseChart');
-  const padT=12,plotH=178;
+  const availW=Math.max(280,(box.clientWidth||900)-16);
+  const padT=26,plotH=170;
   if(mode==='main'){
-    // poucas barras -> responsivo, sem rolagem, rótulos retos
-    const n=items.length, W=600, padL=38, botH=42, H=padT+plotH+botH;
-    const slot=(W-padL-10)/n, bw=Math.min(74,slot*0.5);
-    let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">`;
+    // poucas barras -> centralizado, largura máxima, rótulos retos
+    const n=items.length, W=620, padL=40, botH=42, H=padT+plotH+botH;
+    const slot=(W-padL-10)/n, bw=Math.min(86,slot*0.52);
+    let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:780px;height:auto;display:block;margin:0 auto">`;
     for(let g=0;g<=3;g++){const yv=maxV*g/3,y=padT+plotH-(yv/maxV)*plotH;
       svg+=`<line x1="${padL}" y1="${y}" x2="${W-6}" y2="${y}" stroke="var(--line)"/>`;
       svg+=`<text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="10" fill="var(--ink-soft)">${Math.round(yv)}</text>`;}
@@ -585,23 +640,25 @@ function buildPhaseChart(cs){
     box.style.overflowX='visible';
     box.innerHTML=svg;
   }else{
-    // todas as fases -> rolagem horizontal, rótulos girados
-    const slot=26,bw=16,padL=34,botH=128,W=padL+items.length*slot+10,H=padT+plotH+botH;
-    let svg=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:none">`;
+    // todas as fases -> preenche a largura em telas grandes; rola só quando não couber
+    const slot=24,bw=15,padL=34,botH=128,comfy=padL+items.length*slot+12,H=padT+plotH+botH;
+    const fits=availW>=comfy, W=comfy;
+    const style=fits?'width:100%;height:auto':`width:${comfy}px;height:${H}px;max-width:none`;
+    let svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="${fits?'xMidYMid meet':'xMinYMid meet'}" xmlns="http://www.w3.org/2000/svg" style="${style}">`;
     for(let g=0;g<=3;g++){const yv=maxV*g/3,y=padT+plotH-(yv/maxV)*plotH;
       svg+=`<line x1="${padL}" y1="${y}" x2="${W-6}" y2="${y}" stroke="var(--line)"/>`;
       svg+=`<text x="${padL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="var(--ink-soft)">${Math.round(yv)}</text>`;}
     items.forEach((c,i)=>{
       const x=padL+i*slot+(slot-bw)/2, h=(c.n/maxV)*plotH, y=padT+plotH-h;
       const isPend=/PEND\. ASSESS/.test(c.p);
-      const fill=isPend?'var(--warn)':'var(--accent)';
+      const fill=isPend?'var(--warn)':(/CARTORIO|REGISTRADO|FINALIZADO/.test(c.p)?'var(--ok)':'var(--accent)');
       svg+=`<rect class="bar" data-phase="${c.p.replace(/"/g,'&quot;')}" x="${x}" y="${y}" width="${bw}" height="${Math.max(0,h)}" rx="2" fill="${fill}"><title>${c.p}: ${c.n}</title></rect>`;
       if(c.n>0) svg+=`<text x="${x+bw/2}" y="${y-3}" text-anchor="middle" font-size="8.5" fill="var(--ink-soft)">${c.n}</text>`;
       const lx=padL+i*slot+slot/2, ly=padT+plotH+8, lbl=c.lab.length>17?c.lab.slice(0,16)+'…':c.lab;
       svg+=`<text class="barlbl" data-phase="${c.p.replace(/"/g,'&quot;')}" x="${lx}" y="${ly}" font-size="9" fill="${isPend?'var(--warn)':'var(--ink)'}" transform="rotate(55 ${lx} ${ly})">${lbl}</text>`;
     });
     svg+=`</svg>`;
-    box.style.overflowX='auto';
+    box.style.overflowX=fits?'visible':'auto';
     box.innerHTML=svg;
   }
   box.querySelectorAll('[data-phase]').forEach(el=>el.addEventListener('click',()=>reportByPhase(el.getAttribute('data-phase'))));
@@ -635,6 +692,63 @@ function openReport(html){
   window.scrollTo(0,0);
 }
 
+/* ---------- SLA helpers ---------- */
+function meanArr(a){return a.length? a.reduce((s,x)=>s+x,0)/a.length:null;}
+function caseLead(r){ if(!r.ts||r.ts.length<2) return null; return (r.ts[r.ts.length-1]-r.ts[0])/86400000; }
+function pathsWithSLA(group){
+  const m={};
+  group.forEach(r=>{const k=r.seq.join('|'); if(!m[k])m[k]={n:0,p:r.traj,leads:[]}; m[k].n++; const L=caseLead(r); if(L!=null)m[k].leads.push(L);});
+  return Object.values(m).map(o=>({n:o.n,p:o.p,
+    sla:o.leads.length?Math.round(meanArr(o.leads)*10)/10:null, slaN:o.leads.length}))
+    .sort((a,b)=>b.n-a.n);
+}
+function pathSLAtable(items){
+  return `<div class="pathlist"><div class="pr2 head"><div class="cnt">Qtd</div><div class="pp">Caminho</div><div class="sla">SLA méd.</div></div>`+
+    items.map(t=>`<div class="pr2"><div class="cnt">${t.n}</div><div class="pp">${hl(t.p)}</div><div class="sla">${t.sla==null?'—':t.sla+'d'}</div></div>`).join('')+
+    `</div><div class="src">SLA médio = tempo do 1º ao último carimbo do caminho (dias). “—” = caminho de uma fase só.</div>`;
+}
+
+/* ---------- data de entrada na fase + idade + tabela de relação reutilizável ---------- */
+function fmtFull(ms){if(ms==null)return '—';const d=new Date(ms);
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();}
+function ageDays(ms){return ms==null?null:Math.floor((Date.now()-ms)/86400000);}
+function enteredDate(r,phase){const i=r.seq.indexOf(phase);return i>=0?r.ts[i]:null;}
+function currentEntered(r){const ix=faseToIdx(r.fase);const ph=PHASE_NAMES[ix];
+  if(ph){const i=r.seq.indexOf(ph);if(i>=0)return r.ts[i];}
+  return (r.ts&&r.ts.length)?r.ts[r.ts.length-1]:null;}
+
+// opts.phase => coluna "Entrou em <fase>"; senão => "No status desde" (status atual)
+function relationTable(cases, opts){
+  opts=opts||{};
+  const isFinalF=f=>/CARTORIO|REGISTRADO|FINALIZADO/i.test(f);
+  const colName=opts.phase?('Entrou em '+(ABBR[opts.phase]||opts.phase)):'No status desde';
+  const rows=cases.slice().sort((a,b)=>b.dm-a.dm).map(c=>{
+    const dt=opts.phase?enteredDate(c,opts.phase):currentEntered(c);
+    const age=ageDays(dt);
+    const showAge=age!=null && !(opts.phase) && !isFinalF(c.fase); // idade só faz sentido p/ status atual aberto
+    return {c,dt,age,showAge};
+  });
+  // guarda p/ exportar
+  const header=['Minuta','Contrato','Unidade','Comprador','Status atual',colName,'Dias',(opts.phase?'':'Aberto há'),'Trajeto'];
+  window.__relExport={name:(opts.name||'relacao'),
+    rows:[header].concat(rows.map(o=>[fmtDay(o.c.dm.getTime()), o.c.contrato, o.c.unidade, o.c.comprador, o.c.fase,
+      fmtFull(o.dt), (o.age==null?'':o.age), (o.showAge?o.age:''), o.c.traj]))};
+  const body=rows.map(o=>{
+    const ageTag=o.showAge?` <span class="agetag${o.age>30?' hot':''}">há ${o.age}d</span>`:'';
+    return `<tr><td>${fmtDay(o.c.dm.getTime())}</td><td>${o.c.contrato}</td><td>${o.c.unidade}</td><td>${o.c.comprador}</td>`+
+      `<td>${badge(o.c.fase)}</td><td style="white-space:nowrap">${fmtFull(o.dt)}${ageTag}</td><td class="path">${hl(o.c.traj)}</td></tr>`;
+  }).join('');
+  return `<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="segb pathbtn" onclick="exportRel()">⤓ Exportar CSV</button></div>
+    <div class="tablewrap"><table><thead><tr><th>Minuta</th><th>Contrato</th><th>Unidade</th><th>Comprador</th><th>Status atual</th><th>${colName}</th><th>Trajeto</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function exportRel(){
+  const e=window.__relExport; if(!e||!e.rows)return;
+  const csv=e.rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(e.name||'relacao')+'.csv';document.body.appendChild(a);a.click();a.remove();
+}
+
 /* ---------- relatório: PASSOU POR <fase>  →  mostra em que FASE estão ---------- */
 function reportByPhase(phase){
   const cs=window.__CSfull||casesOf(CUR);
@@ -661,14 +775,12 @@ function reportByPhase(phase){
    <div class="section-label">Em que FASE estão agora ${all?'':'(quem passou por “'+phase+'”)'}</div>
    <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px">${hbars(fdArr,n||1)}</div>
    <div class="src">Barras clicáveis → caminhos do grupo.</div>
-   <div class="section-label">Casos (${n})</div>
-   <div class="tablewrap"><table><thead><tr><th>Minuta</th><th>Contrato</th><th>Unidade</th><th>Comprador</th><th>Status atual</th><th>Trajeto</th></tr></thead><tbody>`+
-   passa.slice().sort((a,b)=>b.dm-a.dm).map(c=>`<tr><td>${fmtDay(c.dm.getTime())}</td><td>${c.contrato}</td><td>${c.unidade}</td><td>${c.comprador}</td><td>${badge(c.fase)}</td><td class="path">${hl(c.traj)}</td></tr>`).join('')+
-   `</tbody></table></div>`;
+   <div class="section-label">Casos (${n})</div>`+
+   (all?relationTable(passa,{name:'minutas_'+ymLabel(CUR)}):relationTable(passa,{phase:phase,name:'passaram_'+(ABBR[phase]||'fase')}))+
+   `<div class="section-label">Todos os caminhos e SLA médio (${(()=>{const s={};passa.forEach(r=>s[r.seq.join('|')]=1);return Object.keys(s).length;})()})</div>`+
+   pathSLAtable(pathsWithSLA(passa));
   openReport(html);
 }
-
-/* ---------- relatório: VENDAS EM <FASE>  →  mostra os caminhos percorridos ---------- */
 function reportByFase(fase){
   const cs=window.__CSfull||casesOf(CUR);
   const grupo=cs.filter(r=>r.fase===fase);
@@ -689,35 +801,39 @@ function reportByFase(fase){
      <div class="card"><div class="n">${paths.length}</div><div class="lbl">Caminhos distintos até aqui</div></div>
      <div class="card"><div class="n">${avgLen}</div><div class="lbl">Média de fases percorridas</div></div>
    </div>
-   <div class="section-label">Caminhos percorridos (${paths.length})</div>
-   <div class="pathlist">`+
-   paths.map(t=>`<div class="pr"><div class="cnt">${t.n}</div><div class="pp">${hl(t.p)}</div></div>`).join('')+
-   `</div>
    <div class="section-label">Fases mais percorridas por este grupo</div>
    <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px">${hbars(pcArr,Math.max(1,...pcArr.map(o=>o.n)))}</div>
-   <div class="section-label">Casos (${n})</div>
-   <div class="tablewrap"><table><thead><tr><th>Minuta</th><th>Contrato</th><th>Unidade</th><th>Comprador</th><th>Status atual</th><th>Trajeto</th></tr></thead><tbody>`+
-   grupo.slice().sort((a,b)=>b.dm-a.dm).map(c=>`<tr><td>${fmtDay(c.dm.getTime())}</td><td>${c.contrato}</td><td>${c.unidade}</td><td>${c.comprador}</td><td>${badge(c.fase)}</td><td class="path">${hl(c.traj)}</td></tr>`).join('')+
-   `</tbody></table></div>`;
+   <div class="section-label">Casos (${n})</div>`+
+   relationTable(grupo,{name:'em_'+(ABBR[fase]||'fase')})+
+   `<div class="section-label">Todos os caminhos e SLA médio (${paths.length})</div>`+
+   pathSLAtable(pathsWithSLA(grupo));
   openReport(html);
 }
 
 /* ---------- todos os caminhos / ramificações ---------- */
 function openAllPaths(){
   const cs=window.__CSfull||casesOf(CUR);
-  const tmap={};cs.forEach(r=>{const k=r.seq.join('|');(tmap[k]=tmap[k]||{n:0,p:r.traj}).n++;});
-  const paths=Object.values(tmap).sort((a,b)=>b.n-a.n);
-  window.__ALLPATHS=paths;
-  const html=`<div class="rhead"><button class="rback" onclick="closePhaseReport()">← Voltar</button><h2>Todos os caminhos — ${ymLabel(CUR)}</h2></div>
-   <div class="src">${paths.length} caminhos distintos entre ${cs.length} minutas. Ordenado pelos mais frequentes. Use a busca para achar caminhos que passam por uma fase.</div>
-   <div class="controls"><input id="pathSearch" placeholder="Filtrar caminhos por fase (ex.: PEND.ASS, Cartório)…"><span class="count" id="pathCount"></span></div>
-   <div class="pathlist" id="allPathList"></div>`;
+  const paths=pathsWithSLA(cs);
+  // mapa caminho(traj) -> casos
+  const byKey={}; cs.forEach(r=>{const k=r.seq.join('|'); (byKey[k]=byKey[k]||[]).push(r);});
+  const trajToKey={}; cs.forEach(r=>{trajToKey[r.traj]=r.seq.join('|');});
+  window.__ALLPATHS=paths; window.__BYKEY=byKey; window.__T2K=trajToKey;
+  const html=`<div class="rhead"><button class="rback" onclick="closePhaseReport()">← Voltar</button><h2>Todos os caminhos e SLA — ${ymLabel(CUR)}</h2></div>
+   <div class="src">${paths.length} caminhos distintos entre ${cs.length} minutas. SLA médio = tempo do 1º ao último carimbo (dias). A busca filtra os caminhos e a relação de clientes abaixo.</div>
+   <div class="controls"><input id="pathSearch" placeholder="Filtrar por fase (ex.: PEND.ASS, Cartório, Registro)…"><span class="count" id="pathCount"></span></div>
+   <div id="allPathList"></div>
+   <div class="section-label">Relação de clientes <span style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink-soft)">(dos caminhos filtrados)</span></div>
+   <div id="allPathRel"></div>`;
   openReport(html);
   const inp=document.getElementById('pathSearch');
   const draw=()=>{const q=(inp.value||'').trim().toLowerCase();
     const f=window.__ALLPATHS.filter(t=>!q||t.p.toLowerCase().includes(q));
     document.getElementById('pathCount').textContent=f.length+' de '+window.__ALLPATHS.length+' · '+f.reduce((s,t)=>s+t.n,0)+' minutas';
-    document.getElementById('allPathList').innerHTML=f.map(t=>`<div class="pr"><div class="cnt">${t.n}</div><div class="pp">${hl(t.p)}</div></div>`).join('');};
+    document.getElementById('allPathList').innerHTML=pathSLAtable(f);
+    // relação dos casos dos caminhos filtrados
+    let cases=[]; f.forEach(t=>{const k=window.__T2K[t.p]; if(k&&window.__BYKEY[k])cases=cases.concat(window.__BYKEY[k]);});
+    document.getElementById('allPathRel').innerHTML=relationTable(cases,{name:'caminhos_'+ymLabel(CUR)});
+  };
   inp.addEventListener('input',draw); draw();
 }
 
@@ -737,6 +853,10 @@ function closePhaseReport(){
   }));
   const ap=document.getElementById('allPathsBtn');
   if(ap) ap.addEventListener('click',openAllPaths);
+  let rzt; window.addEventListener('resize',()=>{clearTimeout(rzt);rzt=setTimeout(()=>{
+    const repOpen=!document.getElementById('phaseReport').classList.contains('hidden');
+    if(window.__CSfull && document.getElementById('p1').classList.contains('active') && !repOpen) buildPhaseChart(window.__CSfull);
+  },180);});
 })();
 
 function badge(f){let c='badge';if(/PEND\. ASSESS/i.test(f))c='badge pend';
@@ -763,79 +883,113 @@ document.getElementById('fFase').addEventListener('change',renderTable);
 document.querySelectorAll('#p1 th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;sd=(sk===k)?-sd:1;sk=k;renderTable();});
 
 /* ---------- PÁGINA 2 ---------- */
+function sevRank(s){return {bad:0,watch:1,good:2,info:3}[s];}
 function renderP2(){
-  const prev=prevYm(CUR);
-  const hasPrev=RECS.some(r=>r.ymv===prev);
-  const D=maxDay(CUR);
-  const jun=kpis(RECS,CUR,D);            // mês atual no período 1..D
+  const cs=window.__CSfull||casesOf(CUR);
+  const prev=prevYm(CUR), hasPrev=RECS.some(r=>r.ymv===prev), D=maxDay(CUR);
+  const cur=kpis(RECS,CUR,D);
+  const maiF=hasPrev?kpis(RECS,prev):null, maiM=hasPrev?kpis(RECS,prev,D):null;
   document.getElementById('p2title').textContent='Resumo Operacional — '+ymLabel(CUR);
-  document.getElementById('p2ref').textContent='Comparativo vs '+(hasPrev?ymLabel(prev):'—');
-  if(!hasPrev){
-    document.getElementById('p2src').textContent='Não há dados do mês anterior na base carregada para comparar.';
-    document.getElementById('verdictBox').innerHTML='';
-    document.getElementById('scorecard').innerHTML='';
-    document.getElementById('matnote').innerHTML='';
-    document.getElementById('cmptbl').innerHTML='';
-    document.getElementById('p2foot').innerHTML='';
-    return;
+  document.getElementById('p2ref').textContent=cs.length+' minutas'+(hasPrev?(' · vs '+ymLabel(prev)):'');
+  document.getElementById('p2src').innerHTML='Diagnóstico automático das minutas de '+ymLabel(CUR)+'.'+
+    (hasPrev?(' Comparações com '+ymLabel(prev)+' (inteiro e mesmo período 1–'+D+').'):' Sem mês anterior na base para comparar tendência.');
+
+  const isFinal=f=>/CARTORIO|REGISTRADO|FINALIZADO/i.test(f);
+  const open=cs.filter(r=>!isFinal(r.fase));
+  const pendNow=cs.filter(r=>/PEND\. ASSESS/i.test(r.fase));
+  const agedOpen=open.map(r=>({r,age:ageDays(currentEntered(r))})).filter(o=>o.age!=null).sort((a,b)=>b.age-a.age);
+  const stuck=agedOpen.filter(o=>o.age>30);
+  // SLA transições
+  const tr={}; cs.forEach(r=>{for(let i=0;i+1<r.seq.length;i++){const k=r.seq[i]+' → '+r.seq[i+1];const g=(r.ts[i+1]-r.ts[i])/86400000;(tr[k]=tr[k]||{n:0,arr:[]});tr[k].n++;tr[k].arr.push(g);}});
+  const idxOf=p=>PHASE_NAMES.indexOf(p);
+  const trArr=Object.entries(tr).map(([k,o])=>{const a=k.split(' → ');return {k,A:a[0],B:a[1],n:o.n,med:median(o.arr)};})
+    .filter(t=>t.n>=Math.max(20,Math.round(cs.length*0.08)) && idxOf(t.B)>idxOf(t.A)); // só transições pra frente
+  const slowest=trArr.slice().sort((a,b)=>b.med-a.med)[0];
+  const leads=cs.map(caseLead).filter(v=>v!=null); const medLead=leads.length?Math.round(median(leads)*10)/10:null;
+  const concl=cs.filter(r=>isFinal(r.fase)).length;
+
+  const F=[];
+  // devolução
+  if(hasPrev){
+    const dDev=Math.round((cur.devreg-maiM.devreg)*10)/10;
+    if(dDev>3) F.push({sev:'bad',title:'Devolução da assessoria subiu',
+      detail:`<b class="bignum">${cur.devreg}%</b> das minutas que chegaram ao registro voltaram pra assessoria, contra ${maiM.devreg}% em ${ymLabel(prev)} no mesmo período (<b>+${dDev} p.p.</b>). Como o lote atual é mais novo, tende a piorar.`,
+      action:'Abra o card “Pend. Assessoria” no Dashboard, veja o que mais é devolvido e ataque a causa mais frequente.'});
+    else if(dDev<-3) F.push({sev:'good',title:'Devolução da assessoria caiu',
+      detail:`De ${maiM.devreg}% para <b class="bignum">${cur.devreg}%</b> (${dDev} p.p.) vs ${ymLabel(prev)} no mesmo período.`,
+      action:'Manter o que mudou no fluxo da assessoria.'});
+    else F.push({sev:'good',title:'Devolução da assessoria estável',
+      detail:`${cur.devreg}% vs ${maiM.devreg}% em ${ymLabel(prev)} (${dDev>=0?'+':''}${dDev} p.p.).`,
+      action:'Sem ação urgente; acompanhar.'});
+  } else F.push({sev:'info',title:'Devolução da assessoria',
+      detail:`${cur.devreg}% das que chegaram ao registro voltaram pra assessoria.`,action:'Carregue um mês anterior para comparar tendência.'});
+  // pend agora
+  if(pendNow.length){
+    const oldest=pendNow.map(r=>ageDays(currentEntered(r))).filter(x=>x!=null).sort((a,b)=>b-a)[0]||0;
+    F.push({sev: pendNow.length>Math.max(10,cs.length*0.03)?'bad':'watch',
+      title:pendNow.length+' minutas paradas na assessoria agora',
+      detail:`Estão no status “Pend. Assessoria” neste momento — a mais antiga há <b>${oldest} dias</b>.`,
+      action:'Priorizar a devolução dessas minutas — clique no card “Pend. Assessoria” para a lista com datas.'});
   }
-  const maiF=kpis(RECS,prev);            // mês anterior inteiro
-  const maiM=kpis(RECS,prev,D);          // mês anterior mesmo período 1..D
-  document.getElementById('p2src').innerHTML=
-   `Comparações: <b>${ymLabel(prev)} inteiro</b> (${maiF.n}) e <b>${ymLabel(prev)} no mesmo período</b> (1–${D}, ${maiM.n}). `+
-   `${ymLabel(CUR)} usa 1–${D} (${jun.n}) para a comparação justa.`;
+  // travadas há +30d
+  if(stuck.length){
+    const o=stuck[0];
+    F.push({sev: stuck.length>Math.max(15,open.length*0.15)?'bad':'watch',
+      title:stuck.length+' minutas abertas há mais de 30 dias',
+      detail:`Casos sem concluir, parados no status atual. A mais antiga: contrato <b>${o.r.contrato}</b> em “${o.r.fase}” há <b>${o.age} dias</b>.`,
+      action:'Use a coluna “No status desde” nas relações para atacar as mais antigas primeiro.'});
+  }
+  // gargalo de tempo
+  if(slowest && slowest.med>=2){
+    F.push({sev:'watch',title:'Etapa mais lenta do fluxo',
+      detail:`A transição <b>${slowest.k.replace(/ASSINADO /g,'').replace(/CONFORME /g,'Conf. ')}</b> leva <b class="bignum">${Math.round(slowest.med*10)/10} dias</b> (mediana, ${slowest.n} casos) — o maior gargalo de tempo entre etapas frequentes.`,
+      action:'Ver detalhes na aba “SLA entre Fases”. Encurtar esse trecho reduz o ciclo inteiro.'});
+  }
+  // volume
+  if(hasPrev){
+    const volPct=maiM.n?Math.round(100*(cur.n-maiM.n)/maiM.n*10)/10:0;
+    const w=Math.abs(volPct)>15;
+    F.push({sev:w?'watch':'good',title:`Volume ${volPct>=0?'+':''}${volPct}% vs ${ymLabel(prev)}`,
+      detail:`${cur.n} minutas emitidas (1–${D}) contra ${maiM.n} no mesmo período de ${ymLabel(prev)}.`,
+      action:w?(volPct>0?'Conferir se a assessoria comporta o aumento de volume.':'Entender a queda na emissão.'):'Volume dentro do normal.'});
+  }
+  // throughput/conclusão (info)
+  F.push({sev:'info',title:`${concl} minutas concluídas · lead ${medLead==null?'—':medLead+'d'}`,
+    detail:`${cs.length?Math.round(1000*concl/cs.length)/10:0}% chegaram a cartório/registrado/finalizado. Tempo mediano do 1º ao último carimbo: <b>${medLead==null?'—':medLead+' dias'}</b>.`,
+    action:'“% concluído” do mês corrente é parcial (minutas novas ainda andando) — comparar só no fechamento.'});
 
-  const dDev=Math.round((jun.devreg-maiM.devreg)*10)/10;
-  const worse=dDev>2;
+  F.sort((a,b)=>sevRank(a.sev)-sevRank(b.sev));
+  const head=F[0];
+  const hv={bad:['bad','⚠ Atenção do mês'],watch:['bad','Pontos de atenção'],good:['good','✓ Operação sob controle'],info:['good','Resumo do mês']}[head.sev];
+  const issues=F.filter(f=>f.sev==='bad'||f.sev==='watch');
   document.getElementById('verdictBox').innerHTML=
-   `<div class="verdict ${worse?'bad':'good'}"><div class="tag">${worse?'⚠ Atenção do mês':'✓ Sob controle'}</div>
-    <h2>${worse?'A devolução da assessoria subiu':'Devolução da assessoria estável ou melhor'}</h2>
-    <p>Entre as minutas que chegaram ao registro, <b>${jun.devreg}%</b> voltaram pra assessoria em ${ymLabel(CUR)}, contra <b>${maiM.devreg}%</b> em ${ymLabel(prev)} no mesmo período (${dDev>=0?'+':''}${dDev} p.p.). As minutas do mês corrente são mais novas (menos tempo pra voltar), então o quadro real tende a ser ${worse?'ainda pior':'parecido ou melhor'}.</p></div>`;
+    `<div class="verdict ${hv[0]}"><div class="tag">${hv[1]}</div><h2>${head.title}</h2>
+      <p>${issues.length?('Prioridades agora: '+issues.slice(0,3).map(f=>f.title).join(' · ')+'.'):'Sem alertas relevantes — indicadores dentro do esperado.'}</p></div>`;
+  const tagTxt={bad:'Ruim',watch:'Atenção',good:'Ok',info:'Info'};
+  const tagCls={bad:'bad',watch:'warns',good:'good',info:'na'};
+  document.getElementById('scorecard').innerHTML=F.map(f=>`
+    <div class="finding ${f.sev}"><div class="stripe"></div>
+      <div><div class="ft">${f.title} <span class="verdtag ${tagCls[f.sev]}">${tagTxt[f.sev]}</span></div>
+        <div class="fd">${f.detail}</div><div class="fa"><b>Ação:</b> ${f.action}</div></div></div>`).join('');
+  document.getElementById('matnote').innerHTML='';
 
-  function delta(cur,base,goodDown){const d=Math.round((cur-base)*10)/10;const good=goodDown?d<0:d>0;
-    return `<b style="color:${good?'var(--ok)':'var(--stop)'}">${d>=0?'+':''}${d}</b>`;}
-  const volPct=maiM.n?Math.round(100*(jun.n-maiM.n)/maiM.n*10)/10:0;
-  const K=[
-   {cls:worse?'bad':'good',name:'Taxa de devolução da assessoria',desc:'voltou ao Pend. após chegar ao registro',
-    big:jun.devreg+'%',bigcls:worse?'bad':'good',
-    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.devreg}% • inteiro: ${maiF.devreg}%<br>${delta(jun.devreg,maiM.devreg,true)} p.p. vs mesmo período`,
-    tag:worse?'Ruim':'Ok',tagcls:worse?'bad':'good'},
-   {cls:Math.abs(volPct)>15?'warns':'good',name:'Volume emitido (1–'+D+')',desc:'minutas com DATA MINUTA no período',
-    big:jun.n,bigcls:'',
-    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.n}<br><b style="color:${Math.abs(volPct)>15?'var(--warn)':'var(--ink-soft)'}">${volPct>=0?'+':''}${volPct}%</b> vs mesmo período`,
-    tag:Math.abs(volPct)>15?'Atenção':'Estável',tagcls:Math.abs(volPct)>15?'warns':'good'},
-   {cls:'good',name:'Tempo de processamento (fwd)',desc:'mediana Pend.→Registro quando flui pra frente',
-    big:(jun.fwd_med==null?'—':jun.fwd_med+'d'),bigcls:'good',
-    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.fwd_med==null?'—':maiM.fwd_med+'d'}<br>base pequena (n=${jun.fwd_n})`,
-    tag:'Ok',tagcls:'good'},
-   {cls:'na',name:'Chegou ao registro / Concluído',desc:'% do lote — afetado por maturação do mês corrente',
-    big:jun.final_p+'%',bigcls:'',
-    cmp:`${ymLabel(prev)} 1–${D}: ${maiM.final_p}%<br><b style="color:var(--gray)">não comparável</b> · minutas jovens`,
-    tag:'Maturação',tagcls:'na'},
-  ];
-  document.getElementById('scorecard').innerHTML=K.map(k=>`
-   <div class="kpi ${k.cls}"><div class="stripe"></div>
-    <div><div class="name">${k.name} <span class="verdtag ${k.tagcls}">${k.tag}</span></div>
-     <div class="desc">${k.desc}</div></div>
-    <div class="vals"><div class="big ${k.bigcls}">${k.big}</div><div class="cmp">${k.cmp}</div></div></div>`).join('');
-
-  document.getElementById('matnote').innerHTML=
-   '<b>Por que “Concluído” pode despencar e não ser alarme:</b> as minutas do mês corrente têm poucos dias de vida e muitas ainda estão andando; as do mês anterior já tiveram tempo de fechar. Comparar conclusão entre lotes de idades diferentes engana — só vale no fechamento. A devolução, ao contrário, já aparece cedo: por isso é o número que importa agora.';
-
-  const rows=[
-   ['Minutas emitidas',jun.n,maiF.n,maiM.n,''],
-   ['Passaram por Pend. Assessoria',jun.passou+' ('+jun.passou_p+'%)',maiF.passou+' ('+maiF.passou_p+'%)',maiM.passou+' ('+maiM.passou_p+'%)',''],
-   ['Devoluções (Registro→Pend)',jun.devol,maiF.devol,maiM.devol,''],
-   ['Taxa de devolução (sobre os que chegaram ao registro)',jun.devreg+'%',maiF.devreg+'%',maiM.devreg+'%',worse?'ruim':''],
-   ['Tempo mediana fwd (dias)',jun.fwd_med==null?'—':jun.fwd_med,maiF.fwd_med==null?'—':maiF.fwd_med,maiM.fwd_med==null?'—':maiM.fwd_med,''],
-   ['Chegou ao registro',jun.reg_p+'%',maiF.reg_p+'%',maiM.reg_p+'%','mat'],
-   ['Concluído (cartório/registrado)',jun.final_p+'%',maiF.final_p+'%',maiM.final_p+'%','mat'],
-  ];
-  document.getElementById('cmptbl').innerHTML=
-   `<thead><tr><th>KPI</th><th>${ymLabel(CUR)} (1–${D})</th><th>${ymLabel(prev)} inteiro</th><th>${ymLabel(prev)} (1–${D})</th></tr></thead><tbody>`+
-   rows.map(r=>{let st=r[4]==='ruim'?' style="color:var(--stop);font-weight:700"':r[4]==='mat'?' style="color:var(--gray)"':'';
-    return `<tr><td>${r[0]}</td><td${st}>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`;}).join('')+'</tbody>';
-  document.getElementById('p2foot').innerHTML='“Chegou ao registro” e “Concluído” em cinza por maturação — reavaliar no fechamento do mês.';
+  // tabela comparativa (referência)
+  if(hasPrev){
+    const rows=[
+     ['Minutas emitidas',cur.n,maiF.n,maiM.n,''],
+     ['Passaram por Pend. Assessoria',cur.passou+' ('+cur.passou_p+'%)',maiF.passou+' ('+maiF.passou_p+'%)',maiM.passou+' ('+maiM.passou_p+'%)',''],
+     ['Devoluções (Registro→Pend)',cur.devol,maiF.devol,maiM.devol,''],
+     ['Taxa de devolução',cur.devreg+'%',maiF.devreg+'%',maiM.devreg+'%',(cur.devreg-maiM.devreg>3)?'ruim':''],
+     ['Tempo mediana fwd (dias)',cur.fwd_med==null?'—':cur.fwd_med,maiF.fwd_med==null?'—':maiF.fwd_med,maiM.fwd_med==null?'—':maiM.fwd_med,''],
+     ['Chegou ao registro',cur.reg_p+'%',maiF.reg_p+'%',maiM.reg_p+'%','mat'],
+     ['Concluído (cartório/registrado)',cur.final_p+'%',maiF.final_p+'%',maiM.final_p+'%','mat'],
+    ];
+    document.getElementById('cmptbl').innerHTML=
+     `<thead><tr><th>KPI</th><th>${ymLabel(CUR)} (1–${D})</th><th>${ymLabel(prev)} inteiro</th><th>${ymLabel(prev)} (1–${D})</th></tr></thead><tbody>`+
+     rows.map(r=>{let st=r[4]==='ruim'?' style="color:var(--stop);font-weight:700"':r[4]==='mat'?' style="color:var(--gray)"':'';
+      return `<tr><td>${r[0]}</td><td${st}>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`;}).join('')+'</tbody>';
+    document.getElementById('p2foot').innerHTML='“Chegou ao registro” e “Concluído” em cinza: caem por maturação do mês corrente, não por piora. Reavaliar no fechamento.';
+  } else { document.getElementById('cmptbl').innerHTML=''; document.getElementById('p2foot').innerHTML=''; }
 }
 
 /* ---------- PÁGINA 3 — OVERVIEW ANUAL ---------- */
@@ -945,5 +1099,93 @@ function renderP3(){
   document.getElementById('p3foot').innerHTML='Δ em verde = melhora, vermelho = piora (direção depende da métrica). Meses sem dado aparecem como “—”.';
 }
 document.getElementById('metricSel').addEventListener('change',renderP3);
+
+/* ---------- PÁGINA 4 — SLA ENTRE FASES ---------- */
+window.__slaSel=[]; // fases selecionadas (nomes)
+function fmtD(v){return v==null?'—':(Math.round(v*10)/10)+'d';}
+// gap por NOME entre fase A e B num caso (ms→dias); null se faltar uma; pode ser negativo (devolução)
+function gapByName(r,A,B){
+  const ia=r.seq.indexOf(A), ib=r.seq.indexOf(B);
+  if(ia<0||ib<0) return null;
+  return (r.ts[ib]-r.ts[ia])/86400000;
+}
+function renderP4(){
+  const cs=window.__CSfull||casesOf(CUR);
+  document.getElementById('p4title').textContent='SLA entre Fases — '+ymLabel(CUR);
+  document.getElementById('p4ref').textContent=cs.length+' minutas';
+  document.getElementById('p4src').textContent='SLA = tempo entre carimbos de fase, em dias. Apenas minutas de '+ymLabel(CUR)+'. Cada coluna guarda um único carimbo, então o SLA reflete a última passagem por cada fase.';
+
+  // cards: lead total por caso
+  const leads=cs.map(caseLead).filter(v=>v!=null);
+  const medLead=leads.length?Math.round(median(leads)*10)/10:null;
+  const meanLead=leads.length?Math.round(meanArr(leads)*10)/10:null;
+  const avgPhases=cs.length?Math.round(cs.reduce((s,r)=>s+r.seq.length,0)/cs.length*10)/10:0;
+  document.getElementById('p4cards').innerHTML=`
+    <div class="card hero"><div class="n">${fmtD(medLead)}</div><div class="lbl">SLA total mediano por caso <span class="pill warn">1º→último carimbo</span></div></div>
+    <div class="card"><div class="n">${fmtD(meanLead)}</div><div class="lbl">SLA total médio por caso</div></div>
+    <div class="card"><div class="n">${avgPhases}</div><div class="lbl">Fases percorridas por caso (média)</div></div>
+    <div class="card"><div class="n">${leads.length}</div><div class="lbl">Casos com ≥2 carimbos (mensuráveis)</div></div>`;
+
+  // SLA por transição consecutiva (no tempo) — sempre >=0
+  const tr={};
+  cs.forEach(r=>{for(let i=0;i+1<r.seq.length;i++){
+    const k=r.seq[i]+' → '+r.seq[i+1], g=(r.ts[i+1]-r.ts[i])/86400000;
+    (tr[k]=tr[k]||{n:0,arr:[]}); tr[k].n++; tr[k].arr.push(g);
+  }});
+  const trArr=Object.entries(tr).map(([k,o])=>({k,n:o.n,med:median(o.arr),mean:meanArr(o.arr)}))
+    .sort((a,b)=>b.n-a.n).slice(0,25);
+  document.getElementById('slaTransTbl').innerHTML=
+    `<thead><tr><th>Transição (fase → fase seguinte)</th><th>Casos</th><th>SLA mediano</th><th>SLA médio</th></tr></thead><tbody>`+
+    trArr.map(t=>{const pend=/PEND\. ASSESS/.test(t.k);
+      return `<tr><td${pend?' style="color:var(--warn);font-weight:600"':''}>${t.k.replace(/ASSINADO /g,'').replace(/CONFORME /g,'Conf. ')}</td><td>${t.n}</td><td>${fmtD(t.med)}</td><td>${fmtD(t.mean)}</td></tr>`;}).join('')+
+    `</tbody>`;
+
+  // chips de seleção (ordem do funil)
+  const box=document.getElementById('slaChips');
+  box.innerHTML=PHASE_NAMES.map(p=>{
+    const on=window.__slaSel.indexOf(p)>=0?' active':'';
+    const pend=/PEND\. ASSESS/.test(p)?' pend':'';
+    return `<button class="chip${pend}${on}" data-p="${p.replace(/"/g,'&quot;')}">${ABBR[p]||p}</button>`;
+  }).join('');
+  box.querySelectorAll('[data-p]').forEach(el=>el.addEventListener('click',()=>{
+    const p=el.getAttribute('data-p'), i=window.__slaSel.indexOf(p);
+    if(i>=0)window.__slaSel.splice(i,1); else window.__slaSel.push(p);
+    renderSlaLegs();
+  }));
+  renderSlaLegs();
+}
+function renderSlaLegs(){
+  const cs=window.__CSfull||casesOf(CUR);
+  // reflete estado nos chips
+  document.querySelectorAll('#slaChips [data-p]').forEach(el=>{
+    el.classList.toggle('active',window.__slaSel.indexOf(el.getAttribute('data-p'))>=0);
+  });
+  const sel=window.__slaSel.slice().sort((a,b)=>PHASE_NAMES.indexOf(a)-PHASE_NAMES.indexOf(b));
+  document.getElementById('slaSel').textContent=sel.length?('Selecionadas (ordem do funil): '+sel.map(p=>ABBR[p]||p).join(' → ')):'Nenhuma fase selecionada.';
+  const out=document.getElementById('slaLegs');
+  if(sel.length<2){out.innerHTML='<div class="note">Escolha pelo menos 2 fases acima para ver o SLA entre elas.</div>';return;}
+  let rows='', totMed=0, totOK=true;
+  for(let i=0;i+1<sel.length;i++){
+    const A=sel[i],B=sel[i+1];
+    const fwd=[],neg=[];
+    cs.forEach(r=>{const g=gapByName(r,A,B); if(g!=null){(g>=0?fwd:neg).push(g);}});
+    const med=fwd.length?median(fwd):null;
+    if(med==null)totOK=false; else totMed+=med;
+    rows+=`<tr><td>${(ABBR[A]||A)} → ${(ABBR[B]||B)}</td><td>${fwd.length}</td><td>${fmtD(med)}</td><td>${fwd.length?fmtD(meanArr(fwd)):'—'}</td><td>${neg.length}</td></tr>`;
+  }
+  // ponta a ponta: 1ª vs última selecionada
+  const A0=sel[0],Bn=sel[sel.length-1];
+  const e2e=[]; let e2eNeg=0;
+  cs.forEach(r=>{const g=gapByName(r,A0,Bn); if(g!=null){ if(g>=0)e2e.push(g); else e2eNeg++; }});
+  out.innerHTML=
+    `<div class="cards" style="margin:6px 0 14px">
+      <div class="card hero"><div class="n">${e2e.length?fmtD(median(e2e)):'—'}</div><div class="lbl">SLA ponta a ponta (${ABBR[A0]||A0} → ${ABBR[Bn]||Bn}), mediano · ${e2e.length} casos</div></div>
+      <div class="card"><div class="n">${totOK?fmtD(totMed):'—'}</div><div class="lbl">Soma das medianas dos trechos</div></div>
+      <div class="card"><div class="n">${e2eNeg}</div><div class="lbl">Casos “para trás” (2ª fase antes da 1ª) — excluídos</div></div>
+    </div>
+    <table class="cmptbl"><thead><tr><th>Trecho</th><th>Casos (fwd)</th><th>SLA mediano</th><th>SLA médio</th><th>“Para trás”</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="src">“Para trás” = casos onde a 2ª fase do trecho foi carimbada antes da 1ª (devolução/retrabalho). São excluídos do SLA e contados à parte.</div>`;
+}
+document.getElementById('slaClear').addEventListener('click',()=>{window.__slaSel=[];renderSlaLegs();});
 </script>
 </body></html>
