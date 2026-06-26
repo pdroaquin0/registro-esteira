@@ -182,6 +182,10 @@ padding:8px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.28);max-wid
 #chartTip .tt-sub{color:#aeb6bd;font-size:11px}
 #chartTip .tt-v{color:#fff;font-variant-numeric:tabular-nums}
 [data-tip]{cursor:pointer}
+.auditbox{border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:#fafbfc;font-size:12.5px}
+.auditbox summary{cursor:pointer;font-weight:600;color:var(--stop)}
+.auditbox ul{margin:8px 0 4px 18px;padding:0}
+.auditbox li{margin:3px 0;color:var(--ink)}
 svg [data-tip]{transition:opacity .1s}
 svg [data-tip]:hover{opacity:.85}
 /* funil topo p1 */
@@ -483,6 +487,7 @@ display:none;align-items:center;justify-content:center;line-height:1}
       <div class="indbox"><div class="indt">Funil de conversão</div><div id="p2conv"></div></div>
       <div class="indbox"><div class="indt">Idade das minutas em aberto</div><div id="p2age"></div></div>
       <div class="indbox indwide"><div class="indt">Onde está o backlog — fases em aberto</div><div id="p2backlog"></div></div>
+      <div class="indbox indwide"><div class="indt">Backlog: período atual vs anterior</div><div id="p2bkcmp"></div></div>
     </div>
 
     <div class="section-label">Tabela comparativa</div>
@@ -934,20 +939,26 @@ function gvizLoad(sheetName){
 /* ---------- aba BLOQUEADOS: mapa CODIGO -> {vr, prazo} ---------- */
 function prepareBloq(aoa){
   const map={};
-  if(!aoa||!aoa.length) return map;
+  const audit={linhas:0, zero:0, semPrazo:0, dup:0};
+  if(!aoa||!aoa.length){ window.__BLOQ_AUDIT=audit; return map; }
   const H=aoa[0].map(x=>String(x==null?'':x).trim().toUpperCase());
   const ci=H.indexOf('CODIGO'), vi=H.indexOf('VR RETIDO'), pi=H.indexOf('PRAZO DE DESBLOQUEIO');
-  if(ci<0) return map;
+  if(ci<0){ window.__BLOQ_AUDIT=audit; return map; }
   const normC=s=>String(s==null?'':s).trim().toUpperCase();
   const num=v=>{ if(typeof v==='number')return v; if(v==null)return 0;
     let s=String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'); const n=parseFloat(s); return isFinite(n)?n:0; };
   for(let i=1;i<aoa.length;i++){
     const r=aoa[i]; if(!r||r[ci]==null||normC(r[ci])==='') continue;
     const cod=normC(r[ci]);
+    audit.linhas++;
+    if(map[cod]) audit.dup++;
     const vr=vi>=0?num(r[vi]):0;
     let prazo=pi>=0?toDate(r[pi]):null;
+    if(!(vr>0)) audit.zero++;
+    if(!prazo) audit.semPrazo++;
     map[cod]={vr, prazo: prazo?prazo.getTime():null};
   }
+  window.__BLOQ_AUDIT=audit;
   return map;
 }
 async function loadBloqFromSheet(){
@@ -1536,6 +1547,29 @@ function renderP2(){
   document.getElementById('p2backlog').innerHTML=hbars(backItems,Math.max(1,...backItems.map(o=>o.n)))+
     '<div class="src">Onde as minutas em aberto estão paradas agora — os maiores são os pontos a destravar.</div>';
 
+  /* ---- #5 backlog atual vs período anterior (com ressalva de maturação) ---- */
+  const bk=document.getElementById('p2bkcmp');
+  if(bk){
+    if(!hasPrev){ bk.innerHTML='<div class="src">Sem período anterior na base para comparar.</div>'; }
+    else{
+      const prevOpen=RECS.filter(r=>baseM.includes(r.ymv) && !isFinal(r.fase));
+      const curByF={}; open.forEach(r=>{curByF[r.fase]=(curByF[r.fase]||0)+1;});
+      const prevByF={}; prevOpen.forEach(r=>{prevByF[r.fase]=(prevByF[r.fase]||0)+1;});
+      const allF=[...new Set([...Object.keys(curByF),...Object.keys(prevByF)])]
+        .map(f=>({f,c:curByF[f]||0,p:prevByF[f]||0}))
+        .sort((a,b)=>(b.c+b.p)-(a.c+a.p)).slice(0,8);
+      const chron=allF.filter(o=>o.p>0);
+      const rowsH=allF.map(o=>`<tr><td>${badge(o.f)}</td><td style="text-align:right">${o.c}</td><td style="text-align:right;color:var(--ink-soft)">${o.p}</td><td style="text-align:right">${o.p>0?'<span class="agetag hot">crônico</span>':''}</td></tr>`).join('');
+      bk.innerHTML=
+        `<div class="cards" style="margin:2px 0 10px">
+           <div class="card hero"><div class="n">${open.length}</div><div class="lbl">Em aberto agora — ${selLabel()}</div></div>
+           <div class="card"><div class="n">${prevOpen.length}</div><div class="lbl">Em aberto agora — ${prevLab}</div></div>
+         </div>
+         <div class="tablewrap"><table><thead><tr><th>Fase</th><th style="text-align:right">${selLabel()}</th><th style="text-align:right">${prevLab}</th><th></th></tr></thead><tbody>${rowsH}</tbody></table></div>
+         <div class="src"><b>Leia com cuidado:</b> ${prevLab} é mais antigo e já teve mais tempo para drenar, então tende a ter menos em aberto. O número maior de ${selLabel()} é esperado por ser um lote novo — sozinho, não quer dizer que a fila cresceu. O sinal confiável são as fases marcadas <b>crônico</b>: mesmo no lote antigo ainda há itens parados nelas${chron.length?(' — '+chron.map(o=>o.f).slice(0,3).join(', ')+(chron.length>3?'…':'')):''}. Uma tendência real de backlog ao longo do tempo não é calculável com confiança porque a base guarda só o último carimbo de cada fase, não o histórico.</div>`;
+    }
+  }
+
 
   // tabela comparativa (referência)
   if(hasPrev){
@@ -1881,13 +1915,21 @@ function renderProjecao(rows){
     return;
   }
   const normC=s=>String(s==null?'':s).trim().toUpperCase();
+  const DAY=86400000;
+  const now=new Date(); const today0=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
   let matched=0, semPrazo=0, semMatch=0, totVal=0;
-  const byDay={};
+  const byDay={}, byEmp={};
+  // janelas relativas a hoje
+  const win={venc:{n:0,v:0}, d7:{n:0,v:0}, d15:{n:0,v:0}, d30:{n:0,v:0}};
   rows.forEach(r=>{
     const b=BL[normC(r.contrato)];
     if(!b){ semMatch++; return; }
     matched++; totVal+=b.vr||0;
+    const emp=r.empreend||'—'; (byEmp[emp]=byEmp[emp]||{n:0,v:0}); byEmp[emp].n++; byEmp[emp].v+=b.vr||0;
     if(b.prazo==null){ semPrazo++; return; }
+    const dd=Math.round((b.prazo-today0)/DAY);
+    if(dd<0){ win.venc.n++; win.venc.v+=b.vr||0; }
+    else { if(dd<=7){win.d7.n++;win.d7.v+=b.vr||0;} if(dd<=15){win.d15.n++;win.d15.v+=b.vr||0;} if(dd<=30){win.d30.n++;win.d30.v+=b.vr||0;} }
     const d=new Date(b.prazo); const key=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
     (byDay[key]=byDay[key]||{ms:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),n:0,val:0});
     byDay[key].n++; byDay[key].val+=(b.vr||0);
@@ -1897,10 +1939,19 @@ function renderProjecao(rows){
     box.innerHTML='<div class="section-label">Projeção — liberação por prazo de desbloqueio</div><div class="note">Nenhum contrato no filtro tem correspondência (CODIGO × Nº CONTRATO) com prazo de desbloqueio na aba BLOQUEADOS.</div>';
     return;
   }
+  days.forEach(d=>{ d.overdue = d.ms<today0; d.soon = !d.overdue && (d.ms-today0)/DAY<=7; });
   const pico=days.slice().sort((a,b)=>b.val-a.val)[0];
-  // acumulado
   let acc=0; days.forEach(d=>{d.acc=(acc+=d.val);});
-  // ---- SVG: barras = montante/dia, rótulo = nº contratos, linha = acumulado ----
+
+  // ---- FEATURE 1+2: cards de janela (vencidos / 7 / 15 / 30) ----
+  const win1=`<div class="kpibar" style="margin:4px 0 12px">
+    <div class="cell ${win.venc.n?'stop':'gray'}"><div class="v" style="font-size:20px">${win.venc.n?fmtMoneyShort(win.venc.v):'R$ 0'}</div><div class="k">⚠ Vencidos (prazo já passou)</div><div class="d">${win.venc.n} contrato(s) · ${fmtMoneyFull(win.venc.v)}</div></div>
+    <div class="cell warn"><div class="v" style="font-size:20px">${fmtMoneyShort(win.d7.v)}</div><div class="k">Liberam em até 7 dias</div><div class="d">${win.d7.n} contrato(s)</div></div>
+    <div class="cell"><div class="v" style="font-size:20px">${fmtMoneyShort(win.d15.v)}</div><div class="k">Até 15 dias</div><div class="d">${win.d15.n} contrato(s) · acumulado</div></div>
+    <div class="cell"><div class="v" style="font-size:20px">${fmtMoneyShort(win.d30.v)}</div><div class="k">Até 30 dias</div><div class="d">${win.d30.n} contrato(s) · acumulado</div></div>
+  </div>`;
+
+  // ---- SVG: barras (cor por urgência) + acumulado ----
   const W=880,padL=58,padR=16,padT=24,padB=52,plotH=210,plotW=W-padL-padR;
   const maxVal=Math.max(1,...days.map(d=>d.val));
   const n=days.length, slot=plotW/n, bw=Math.min(26,slot*0.66);
@@ -1912,35 +1963,78 @@ function renderProjecao(rows){
     svg+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="var(--line)"/>`;
     svg+=`<text x="${padL-6}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink-soft)">${fmtMoneyShort(vv)}</text>`;}
   days.forEach((d,i)=>{const bx=x(i)-bw/2, by=yV(d.val), h=padT+plotH-by;
-    const tip=`<div class='tt-h'>${fmtFull(d.ms)}</div><div class='tt-v'>${d.n} contrato(s) · ${fmtMoneyFull(d.val)}</div><div class='tt-sub'>acumulado: ${fmtMoneyFull(d.acc)}</div>`;
-    svg+=`<rect data-tip="${tip.replace(/"/g,'&quot;')}" x="${bx}" y="${by}" width="${bw}" height="${Math.max(0,h)}" rx="2" fill="var(--accent)"/>`;
-    svg+=`<text x="${x(i)}" y="${by-3}" text-anchor="middle" font-size="8.5" font-weight="700" fill="var(--stop)">${d.n}</text>`;
-    svg+=`<text x="${x(i)}" y="${padT+plotH+12}" text-anchor="end" font-size="8" fill="var(--ink-soft)" transform="rotate(-60 ${x(i)} ${padT+plotH+12})">${fmtDM(d.ms)}</text>`;});
-  // linha acumulada
+    const col=d.overdue?'var(--stop)':(d.soon?'var(--warn)':'var(--accent)');
+    const ddays=Math.round((d.ms-today0)/DAY);
+    const quando=d.overdue?('venceu há '+Math.abs(ddays)+' dia(s)'):(ddays===0?'vence hoje':('vence em '+ddays+' dia(s)'));
+    const tip=`<div class='tt-h'>${fmtFull(d.ms)} — ${quando}</div><div class='tt-v'>${d.n} contrato(s) · ${fmtMoneyFull(d.val)}</div><div class='tt-sub'>acumulado: ${fmtMoneyFull(d.acc)}</div>`;
+    svg+=`<rect data-tip="${tip.replace(/"/g,'&quot;')}" x="${bx}" y="${by}" width="${bw}" height="${Math.max(0,h)}" rx="2" fill="${col}"/>`;
+    svg+=`<text x="${x(i)}" y="${by-3}" text-anchor="middle" font-size="8.5" font-weight="700" fill="${d.overdue?'var(--stop)':'var(--ink-soft)'}">${d.n}</text>`;
+    svg+=`<text x="${x(i)}" y="${padT+plotH+12}" text-anchor="end" font-size="8" fill="${d.overdue?'var(--stop)':'var(--ink-soft)'}" transform="rotate(-60 ${x(i)} ${padT+plotH+12})">${fmtDM(d.ms)}</text>`;});
   const pts=days.map((d,i)=>x(i)+','+yA(d.acc));
   svg+=`<polyline fill="none" stroke="#9aa3ab" stroke-width="1.6" stroke-dasharray="4 3" points="${pts.join(' ')}"/>`;
-  svg+=`</svg>`;
-  // ---- KPIs ----
+  svg+=`</svg>
+   <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:11px;color:var(--ink-soft);margin-top:4px">
+     <span><span style="display:inline-block;width:10px;height:10px;background:var(--stop);border-radius:2px;margin-right:4px;vertical-align:-1px"></span>vencido</span>
+     <span><span style="display:inline-block;width:10px;height:10px;background:var(--warn);border-radius:2px;margin-right:4px;vertical-align:-1px"></span>≤ 7 dias</span>
+     <span><span style="display:inline-block;width:10px;height:10px;background:var(--accent);border-radius:2px;margin-right:4px;vertical-align:-1px"></span>futuro</span>
+     <span><span style="display:inline-block;width:14px;height:0;border-top:2px dashed #9aa3ab;margin-right:4px;vertical-align:3px"></span>acumulado</span>
+   </div>`;
+
+  // ---- visão geral ----
   const kpi=`<div class="kpibar" style="margin:4px 0 12px">
     <div class="cell"><div class="v">${matched}</div><div class="k">Contratos retidos no filtro</div><div class="d">cruzados com BLOQUEADOS</div></div>
     <div class="cell stop"><div class="v" style="font-size:21px">${fmtMoneyShort(totVal)}</div><div class="k">Montante retido total</div><div class="d">${fmtMoneyFull(totVal)}</div></div>
     <div class="cell warn"><div class="v">${pico.n} · ${fmtMoneyShort(pico.val)}</div><div class="k">Dia de pico (${fmtDM(pico.ms)})</div><div class="d">maior liberação prevista</div></div>
     <div class="cell gray"><div class="v">${days.length}</div><div class="k">Dias com liberação</div><div class="d">${fmtDM(days[0].ms)} → ${fmtDM(days[days.length-1].ms)}</div></div>
   </div>`;
-  // ---- tabela ----
-  window.__projExport={name:'projecao_desbloqueio',rows:[['Prazo de desbloqueio','Contratos','Montante (R$)','Acumulado (R$)']]
-    .concat(days.map(d=>[fmtFull(d.ms),d.n,(d.val).toFixed(2).replace('.',','),(d.acc).toFixed(2).replace('.',',')]))};
+
+  // ---- FEATURE 3: recorte por empreendimento ----
+  const empArr=Object.entries(byEmp).map(([e,o])=>({label:e,n:o.n,v:o.v})).sort((a,b)=>b.v-a.v);
+  const empTop=empArr.slice(0,10);
+  const empBars=empTop.map(o=>({label:o.label, n:o.n,
+    tip:`<div class='tt-h'>${(o.label||'—').replace(/"/g,'&quot;')}</div><div class='tt-v'>${fmtMoneyFull(o.v)}</div><div class='tt-sub'>${o.n} contrato(s) retido(s)</div>`,
+    _v:o.v}));
+  const empMaxV=Math.max(1,...empTop.map(o=>o.v));
+  // barras horizontais por VALOR (não por contagem)
+  const empHtml=empTop.map(o=>{const w=Math.round(100*o.v/empMaxV);
+    const tip=("<div class='tt-h'>"+(o.label||'—')+"</div><div class='tt-v'>"+fmtMoneyFull(o.v)+"</div><div class='tt-sub'>"+o.n+" contrato(s)</div>").replace(/"/g,'&quot;');
+    return `<div class="hbar" data-tip="${tip}"><span class="hl-lab">${o.label||'—'}</span><div class="track"><div class="fillb" style="width:${w}%"></div></div><div class="hl-q" style="white-space:nowrap">${fmtMoneyShort(o.v)} · ${o.n}</div></div>`;
+  }).join('');
+
+  // ---- tabela diária ----
+  window.__projExport={name:'projecao_desbloqueio',rows:[['Prazo de desbloqueio','Situação','Contratos','Montante (R$)','Acumulado (R$)']]
+    .concat(days.map(d=>[fmtFull(d.ms),(d.overdue?'VENCIDO':(d.soon?'≤7 dias':'futuro')),d.n,(d.val).toFixed(2).replace('.',','),(d.acc).toFixed(2).replace('.',',')]))};
   const tbl=`<div style="display:flex;justify-content:flex-end;margin:10px 0 6px"><button class="segb pathbtn" onclick="exportProj()">⤓ Exportar CSV</button></div>
-    <div class="tablewrap"><table><thead><tr><th>Prazo de desbloqueio</th><th style="text-align:right">Contratos</th><th style="text-align:right">Montante</th><th style="text-align:right">Acumulado</th></tr></thead><tbody>`+
-    days.map(d=>`<tr><td style="white-space:nowrap">${fmtFull(d.ms)}</td><td style="text-align:right">${d.n}</td><td style="text-align:right;white-space:nowrap">${fmtMoneyFull(d.val)}</td><td style="text-align:right;white-space:nowrap;color:var(--ink-soft)">${fmtMoneyFull(d.acc)}</td></tr>`).join('')+
-    `<tr style="font-weight:700;border-top:2px solid var(--line)"><td>Total</td><td style="text-align:right">${matched}</td><td style="text-align:right;white-space:nowrap">${fmtMoneyFull(totVal)}</td><td></td></tr>`+
+    <div class="tablewrap"><table><thead><tr><th>Prazo de desbloqueio</th><th>Situação</th><th style="text-align:right">Contratos</th><th style="text-align:right">Montante</th><th style="text-align:right">Acumulado</th></tr></thead><tbody>`+
+    days.map(d=>{const sit=d.overdue?'<b style="color:var(--stop)">Vencido</b>':(d.soon?'<span style="color:var(--warn)">≤7 dias</span>':'futuro');
+      return `<tr${d.overdue?' style="background:#fdecec"':''}><td style="white-space:nowrap">${fmtFull(d.ms)}</td><td style="white-space:nowrap">${sit}</td><td style="text-align:right">${d.n}</td><td style="text-align:right;white-space:nowrap">${fmtMoneyFull(d.val)}</td><td style="text-align:right;white-space:nowrap;color:var(--ink-soft)">${fmtMoneyFull(d.acc)}</td></tr>`;}).join('')+
+    `<tr style="font-weight:700;border-top:2px solid var(--line)"><td>Total</td><td></td><td style="text-align:right">${matched}</td><td style="text-align:right;white-space:nowrap">${fmtMoneyFull(totVal)}</td><td></td></tr>`+
     `</tbody></table></div>`;
-  const aviso=(semMatch||semPrazo)?`<div class="src">${semMatch} contrato(s) do filtro sem correspondência na aba BLOQUEADOS${semPrazo?(' · '+semPrazo+' sem prazo de desbloqueio preenchido'):''} — ficam fora do gráfico.</div>`:'';
+
+  // ---- FEATURE 4: conferência da base ----
+  const au=window.__BLOQ_AUDIT||{linhas:0,zero:0,semPrazo:0,dup:0};
+  const pctNoMatch=matched+semMatch?Math.round(100*semMatch/(matched+semMatch)):0;
+  const flags=[];
+  if(semMatch) flags.push(`<b>${semMatch}</b> contrato(s) no cartório do filtro sem correspondência em BLOQUEADOS (${pctNoMatch}%)`);
+  if(au.zero) flags.push(`<b>${au.zero}</b> linha(s) em BLOQUEADOS com VR RETIDO zerado/ausente`);
+  if(au.semPrazo) flags.push(`<b>${au.semPrazo}</b> sem PRAZO DE DESBLOQUEIO preenchido`);
+  if(au.dup) flags.push(`<b>${au.dup}</b> CODIGO duplicado em BLOQUEADOS`);
+  const audit = flags.length
+    ? `<details class="auditbox"><summary>Conferência da base — ${flags.length} ponto(s) de atenção</summary><ul>${flags.map(f=>'<li>'+f+'</li>').join('')}</ul><div class="src">Esses itens ficam de fora ou podem distorcer a projeção. Vale corrigir na planilha.</div></details>`
+    : `<div class="src" style="color:var(--ok)">✓ Conferência da base: todos os contratos do filtro têm correspondência e prazo válidos.</div>`;
+
   box.innerHTML=`<div class="section-label">Projeção — liberação por prazo de desbloqueio</div>
-    <div class="src">Cruzamento <b>Nº CONTRATO</b> (FASES) × <b>CODIGO</b> (BLOQUEADOS). Barras = montante retido liberável por dia · número em vermelho = contratos · linha tracejada = acumulado.</div>
+    <div class="src">Cruzamento <b>Nº CONTRATO</b> (FASES) × <b>CODIGO</b> (BLOQUEADOS). As janelas abaixo usam a data de hoje (${fmtFull(today0)}).</div>
+    ${win1}
     ${kpi}
+    <div class="indt" style="margin:2px 0 8px">Liberação por dia (cor = urgência)</div>
     <div class="indbox">${svg}</div>
-    ${tbl}${aviso}`;
+    <div class="section-label">Onde está o dinheiro travado — por empreendimento</div>
+    <div class="src">Montante retido por empreendimento (top 10 · barra = valor).</div>
+    <div class="indbox">${empHtml}</div>
+    <div class="section-label">Detalhe por dia</div>
+    ${tbl}
+    <div style="margin-top:10px">${audit}</div>`;
 }
 
 /* auto-puxar da planilha ao abrir */
